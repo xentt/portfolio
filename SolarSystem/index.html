@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cosmos - Particulas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --glass-bg: rgba(255,255,255,0.06);
+      --glass-border: rgba(255,255,255,0.14);
+      --glass-shadow: rgba(0,0,0,0.25);
+      --text-primary: rgba(255,255,255,0.92);
+      --text-secondary: rgba(255,255,255,0.50);
+      --blur: 24px;
+      --radius: 18px;
+      --font: 'DM Sans', sans-serif;
+      --mono: 'DM Mono', monospace;
+    }
+
+    body {
+      overflow: hidden;
+      background: #020308;
+      font-family: var(--font);
+      color: var(--text-primary);
+      user-select: none;
+    }
+
+    #container {
+      position: fixed; inset: 0;
+      background: radial-gradient(ellipse at 25% 15%, #080d28 0%, #020308 55%),
+                  radial-gradient(ellipse at 80% 90%, #0a0818 0%, transparent 60%);
+    }
+
+    .glass {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(var(--blur)) saturate(180%);
+      -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
+      box-shadow: 0 8px 32px var(--glass-shadow),
+                  inset 0 1px 0 rgba(255,255,255,0.10);
+      border-radius: var(--radius);
+    }
+
+    #hud {
+      position: fixed; top: 24px; left: 24px;
+      padding: 16px 20px; z-index: 100; min-width: 210px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+    #hud.visible { opacity: 1; pointer-events: auto; }
+
+    .hud-title {
+      font-size: 11px; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--text-secondary);
+      margin-bottom: 12px; font-weight: 500;
+    }
+    .hud-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 12.5px;
+    }
+    .hud-row:last-child { border-bottom: none; }
+    .hud-key { color: var(--text-secondary); }
+    .hud-val {
+      font-family: var(--mono); font-size: 12px;
+      font-weight: 300; color: var(--text-primary);
+    }
+
+    .status-dot {
+      display: inline-block; width: 6px; height: 6px;
+      border-radius: 50%; background: #5effa0;
+      box-shadow: 0 0 8px #5effa0;
+      animation: pulse-dot 2.4s ease-in-out infinite;
+      margin-right: 6px; vertical-align: middle;
+    }
+    @keyframes pulse-dot {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(1.4); }
+    }
+
+    #control-panel {
+      position: fixed; bottom: 28px; left: 50%;
+      transform: translateX(-50%);
+      display: flex; align-items: center; gap: 12px;
+      z-index: 100; padding: 10px 16px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+    #control-panel.visible { opacity: 1; pointer-events: auto; }
+
+    #next-btn {
+      display: flex; align-items: center; gap: 9px;
+      padding: 10px 22px; border-radius: 50px;
+      cursor: pointer; font-size: 13px; font-weight: 500;
+      font-family: var(--font); color: var(--text-primary);
+      border: none; outline: none;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.18);
+      backdrop-filter: blur(var(--blur));
+      transition: all 0.2s ease;
+    }
+    #next-btn:hover {
+      background: rgba(255,255,255,0.16);
+      transform: translateY(-1px);
+    }
+
+    .shape-pills {
+      display: flex; gap: 5px; flex-wrap: wrap; justify-content: center;
+    }
+    .shape-pill {
+      padding: 6px 14px; border-radius: 50px;
+      cursor: pointer; font-size: 11px; font-weight: 500;
+      color: var(--text-secondary); transition: all 0.25s ease;
+      border: 1px solid transparent; display: flex; align-items: center; gap: 6px;
+    }
+    .shape-pill.active {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.18);
+      color: var(--text-primary);
+    }
+    .shape-pill:hover:not(.active) {
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.75);
+    }
+    .pill-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    #info-panel {
+      position: fixed; top: 24px; right: 24px;
+      padding: 24px 22px; z-index: 100;
+      width: 290px;
+      opacity: 0; pointer-events: none;
+      transform: translateX(20px);
+      transition: all 0.4s cubic-bezier(0.25,0.8,0.25,1);
+    }
+    #info-panel.visible {
+      opacity: 1; pointer-events: auto;
+      transform: translateX(0);
+    }
+
+    #info-panel .obj-name {
+      font-size: 22px; font-weight: 500; margin-bottom: 4px;
+    }
+    #info-panel .obj-category {
+      font-size: 10px; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+    #info-panel .obj-desc {
+      font-size: 12.5px; line-height: 1.7;
+      color: rgba(255,255,255,0.65); margin-bottom: 18px;
+    }
+
+    .info-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    }
+    .info-item {
+      padding: 10px; border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .info-item .label {
+      font-size: 9px; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--text-secondary);
+      margin-bottom: 3px;
+    }
+    .info-item .value {
+      font-family: var(--mono); font-size: 11.5px;
+      font-weight: 400; color: var(--text-primary);
+    }
+
+    #instructions-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(2,3,8,0.93);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      animation: fadeIn 0.6s ease;
+    }
+    #instructions-overlay.hidden {
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.6s ease;
+    }
+
+    .instructions-card {
+      max-width: 520px; width: 90%;
+      padding: 40px 36px; border-radius: 24px;
+      background: linear-gradient(160deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: 0 16px 64px rgba(0,0,0,0.6);
+      text-align: center;
+    }
+    .instructions-card h1 {
+      font-size: 28px; font-weight: 500; margin-bottom: 6px;
+      background: linear-gradient(135deg, #c084fc, #818cf8, #60a5fa);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .instructions-card .subtitle {
+      font-size: 11px; color: var(--text-secondary);
+      letter-spacing: 3px; text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+    .instructions-card .steps { text-align: left; margin-bottom: 28px; }
+    .instructions-card .step {
+      display: flex; gap: 14px; align-items: flex-start; margin-bottom: 16px;
+    }
+    .instructions-card .step-icon {
+      flex-shrink: 0; width: 34px; height: 34px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+    .instructions-card .step-text {
+      font-size: 13px; line-height: 1.65; color: rgba(255,255,255,0.70);
+    }
+    .instructions-card .step-text strong { color: #c084fc; }
+
+    .btn-start {
+      display: inline-block; padding: 12px 44px;
+      border-radius: 50px; border: none;
+      background: linear-gradient(135deg, #c084fc, #7c3aed);
+      color: #fff; font-size: 13px; font-weight: 600;
+      letter-spacing: 2px; text-transform: uppercase;
+      cursor: pointer; transition: all 0.3s ease;
+      box-shadow: 0 4px 24px rgba(192,132,252,0.25);
+    }
+    .btn-start:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(192,132,252,0.4);
+    }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    @media (max-width: 768px) {
+      #info-panel {
+        top: auto; bottom: 90px; right: 16px; left: 16px;
+        width: auto; transform: none; max-height: 40vh; overflow-y: auto;
+      }
+      #info-panel.visible { transform: none; }
+      .shape-pills { gap: 3px; }
+      .shape-pill { padding: 5px 10px; font-size: 10px; }
+      #hud { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="container"></div>
+
+  <div id="hud" class="glass">
+    <div class="hud-title"><span class="status-dot"></span>Cosmos</div>
+    <div class="hud-row"><span class="hud-key">Particulas</span><span class="hud-val">50,000</span></div>
+    <div class="hud-row"><span class="hud-key">Objeto</span><span class="hud-val" id="mode-display">Galaxia Espiral</span></div>
+  </div>
+
+  <div id="info-panel" class="glass">
+    <div class="obj-name" id="obj-name"></div>
+    <div class="obj-category" id="obj-category"></div>
+    <div class="obj-desc" id="obj-desc"></div>
+    <div class="info-grid" id="info-grid"></div>
+  </div>
+
+  <div id="control-panel" class="glass">
+    <div class="shape-pills" id="shape-pills"></div>
+    <div style="width:1px;height:28px;background:rgba(255,255,255,0.12);flex-shrink:0;"></div>
+    <button id="next-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="5,3 19,12 5,21" fill="currentColor" stroke="none" opacity="0.8"/>
+      </svg>
+      Siguiente
+    </button>
+  </div>
+
+  <div id="instructions-overlay">
+    <div class="instructions-card">
+      <h1>Cosmos</h1>
+      <p class="subtitle">Objetos estelares en particulas</p>
+      <div class="steps">
+        <div class="step">
+          <div class="step-icon" style="background:rgba(192,132,252,0.12);color:#c084fc;">1</div>
+          <div class="step-text">
+            <strong>Observa</strong> como 50,000 particulas forman galaxias, nebulosas, quasares, pulsares, agujeros negros y estrellas de neutrones.
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-icon" style="background:rgba(96,165,250,0.12);color:#60a5fa;">2</div>
+          <div class="step-text">
+            <strong>Haz clic en "Siguiente"</strong> o en un objeto de la barra inferior para ver la transicion morphing entre formas cosmicas.
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-icon" style="background:rgba(52,211,153,0.12);color:#34d399;">3</div>
+          <div class="step-text">
+            <strong>Arrastra</strong> para rotar la vista 3D. Usa la rueda del mouse para hacer zoom.
+          </div>
+        </div>
+      </div>
+      <button class="btn-start" id="btn-start">Explorar</button>
+    </div>
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+    import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const N = 50000;
+
+    function hh(s) {
+      return (Math.abs(Math.sin(s * 127.1 + 311.7) * 43758.5453)) % 1;
+    }
+
+    /* ═══════════════════════════════════════
+       Objetos cosmicos
+    ═══════════════════════════════════════ */
+    const OBJECTS = [
+      {
+        name: 'Galaxia Espiral', category: 'Galaxia',
+        colors: [0x6366f1, 0x818cf8, 0xa5b4fc, 0xc7d2fe, 0x3b82f6, 0x93c5fd],
+        bloom: 0.50,
+        desc: 'Galaxia espiral barrada con brazos curvos de estrellas jovenes y azules. Contiene entre 100 mil millones y 400 mil millones de estrellas.',
+        info: { Tipo: 'SBb', Estrellas: '100-400 mil M', Tamano: '100,000 al', Edad: '~13,000 M a' }
+      },
+      {
+        name: 'Nebulosa', category: 'Nebulosa de Emision',
+        colors: [0xec4899, 0xf472b6, 0xf9a8d4, 0xef4444, 0xf97316, 0xfbbf24],
+        bloom: 0.55,
+        desc: 'Nube gigante de hidrogeno ionizado donde nacen nuevas estrellas. Los colores provienen de gases excitados por la radiacion ultravioleta.',
+        info: { Tipo: 'H II', Tamano: '~24 al', Temp: '10,000 K', Masa: '~100 M' }
+      },
+      {
+        name: 'Quasar', category: 'Nucleo Galactico Activo',
+        colors: [0x60a5fa, 0x93c5fd, 0xe0f2fe, 0xfef9c3, 0xfef08a, 0xffffff],
+        bloom: 0.65,
+        desc: 'El核 galactico activo mas luminoso del universo. Un agujero negro supermasivo devora materia, emitiendo jets de energia a velocidades relativistas.',
+        info: { Luminosidad: '10^12 L', Distancia: 'Mil M al', Jets: '0.99c', Masa: '10^9 M' }
+      },
+      {
+        name: 'Pulsar', category: 'Estrella de Neutron Rotante',
+        colors: [0xe0f2fe, 0xbae6fd, 0x7dd3fc, 0x38bdf8, 0xffffff, 0x0ea5e9],
+        bloom: 0.40,
+        desc: 'Estrella de neutrones que emite radiacion en intervalos regulares al rotar. Puede girar hasta 716 veces por segundo.',
+        info: { Periodo: '0.001-5 s', Campo: '10^8 T', Densidad: '10^17 kg/m3', Tamano: '~20 km' }
+      },
+      {
+        name: 'Agujero Negro', category: 'Singularidad Gravitacional',
+        colors: [0xef4444, 0xf87171, 0xfca5a5, 0xf97316, 0xfbbf24, 0x000000],
+        bloom: 0.55,
+        desc: 'Region donde la gravedad es tan intensa que nada, ni siquiera la luz, puede escapar. El disco de acrecion brilla a millones de grados.',
+        info: { Masa: '3-100 mil M', Horizonte: 'Inescapable', Disco: '~10^7 K', Jets: 'Relativistas' }
+      },
+      {
+        name: 'Estrella de Neutron', category: 'Remanente Estelar',
+        colors: [0xe0e7ff, 0xc7d2fe, 0xa5b4fc, 0x818cf8, 0x6366f1, 0xffffff],
+        bloom: 0.35,
+        desc: 'Nucleo colapsado de una estrella masiva. Un cubo de esta materia pesaria como un cerro de montana. Campo magnetico extremadamente intenso.',
+        info: { Masa: '1.4-2.1 M', Tamano: '~20 km', Edad: '~M a', Temp: '~10^6 K' }
+      },
+      {
+        name: 'Supernova', category: 'Explosion Estelar',
+        colors: [0xfbbf24, 0xf59e0b, 0xef4444, 0xf97316, 0xffffff, 0xfde047],
+        bloom: 0.60,
+        desc: 'Explosion de una estrella masiva al final de su vida. Por un momento puede ser mas brillante que toda su galaxia. Forja elementos pesados como el hierro y el oro.',
+        info: { Energia: '10^44 J', Brillantez: '10^9 L', Duracion: '~semanas', Elementos: 'Fe, Au, U' }
+      },
+      {
+        name: 'Planeta Nebuloso', category: 'Protoestrella',
+        colors: [0x34d399, 0x6ee7b7, 0xa7f3d0, 0x059669, 0x10b981, 0xd1fae5],
+        bloom: 0.40,
+        desc: 'Estrella recien nacida envuelta en una nebulosa protoplanetaria de gas y polvo. De este disco se forman eventualmente planetas.',
+        info: { Tipo: 'T Tauri', Edad: '~10 M a', Disco: 'Presente', Planetas: 'Formandose' }
+      }
+    ];
+
+    /* ═══════════════════════════════════════
+       Generadores de forma
+    ═══════════════════════════════════════ */
+    const GENERATORS = [];
+    const COLOR_ASSIGNERS = [];
+
+    // ── Galaxia Espiral ──
+    GENERATORS[0] = function(i) {
+      const t = i / N;
+      if (t < 0.12) {
+        const phi = Math.acos(1 - 2 * hh(i * 1.1));
+        const theta = hh(i * 2.3) * Math.PI * 2;
+        const r = hh(i * 3.7) * 10;
+        return new THREE.Vector3(
+          r * Math.sin(phi) * Math.cos(theta),
+          (hh(i * 4.1) - 0.5) * 3 * (1 - r / 10),
+          r * Math.sin(phi) * Math.sin(theta)
+        );
+      } else {
+        const arm = Math.floor(hh(i * 5.3) * 4);
+        const dist = 10 + (t - 0.12) / 0.88 * 60;
+        const angle = dist * 0.11 + arm * (Math.PI / 2);
+        const spread = (hh(i * 6.7) - 0.5) * (2 + dist * 0.07);
+        const wave = Math.sin(dist * 0.25) * 2.5;
+        const clump = hh(i * 7.1) > 0.85 ? (hh(i * 7.9) - 0.5) * 4 : 0;
+        return new THREE.Vector3(
+          dist * Math.cos(angle) + spread + clump,
+          (hh(i * 8.3) - 0.5) * 2.5 + wave,
+          dist * Math.sin(angle) + spread * 0.6 + clump
+        );
+      }
+    };
+    COLOR_ASSIGNERS[0] = function(colors, sizes) {
+      const pal = OBJECTS[0].colors.map(c => new THREE.Color(c));
+      for (let i = 0; i < N; i++) {
+        const t = i / N;
+        const ci = t < 0.12 ? (hh(i * 5.1) > 0.5 ? 4 : 5) : Math.floor(hh(i * 7.3) * 4);
+        const b = 0.45 + hh(i * 3.1) * 0.9;
+        const c = pal[ci];
+        colors[i*3] = c.r * b; colors[i*3+1] = c.g * b; colors[i*3+2] = c.b * b;
+        sizes[i] = t < 0.12 ? 0.8 + hh(i * 2.9) * 2.0 : 0.5 + hh(i * 2.9) * 2.5;
+      }
+    };
+
+    // ── Nebulosa ──
+    GENERATORS[1] = function(i) {
+      const t = i / N;
+      if (t < 0.15) {
+        const phi = Math.acos(1 - 2 * hh(i * 1.1));
+        const theta = hh(i * 2.3) * Math.PI * 2;
+        const r = hh(i * 3.7) * 12;
+        return new THREE.Vector3(
+          r * Math.sin(phi) * Math.cos(theta),
+          r * Math.cos(phi) * 0.8,
+          r * Math.sin(phi) * Math.sin(theta)
+        );
+      } else {
+        const filament = Math.floor(hh(i * 4.3) * 8);
+        const ft = hh(i * 5.1);
+        const radius = 12 + ft * 50;
+        const angle = ft * Math.PI * 5 + filament * (Math.PI / 4);
+        const curl = Math.sin(ft * Math.PI * 4) * 10;
+        const drift = (hh(i * 6.9) - 0.5) * 16;
+        const puff = hh(i * 7.3) > 0.7 ? (hh(i * 7.7) - 0.5) * 8 : 0;
+        return new THREE.Vector3(
+          radius * Math.cos(angle) + curl + puff,
+          drift + Math.sin(ft * Math.PI * 3) * 8,
+          radius * Math.sin(angle) + curl * 0.6 + puff
+        );
+      }
+    };
+    COLOR_ASSIGNERS[1] = function(colors, sizes) {
+      const pal = OBJECTS[1].colors.map(c => new THREE.Color(c));
+      for (let i = 0; i < N; i++) {
+        const t = i / N;
+        const ci = Math.floor(hh(i * 7.3) * pal.length);
+        const b = 0.35 + hh(i * 3.1) * 1.0;
+        const c = pal[ci];
+        colors[i*3] = c.r * b; colors[i*3+1] = c.g * b; colors[i*3+2] = c.b * b;
+        sizes[i] = t < 0.15 ? 1.2 + hh(i * 2.9) * 2.5 : 0.6 + hh(i * 2.9) * 3.0;
+      }
+    };
+
+    // ── Quasar ──
+    GENERATORS[2] = function(i) {
+      const t = i / N;
+      if (t < 0.45) {
+        const dt = t / 0.45;
+        const innerR = 5;
+        const outerR = 45;
+        const r = innerR * Math.pow(outerR / innerR, dt);
+        const angle = dt * Math.PI * 16 + hh(i * 1.7) * 0.4;
+        const halfH = 2.5 * (1 - dt * 0.6) + hh(i * 2.9) * 1.2;
+        const y = (hh(i * 3.3) * 2 - 1) * halfH;
+        return new THREE.Vector3(r * Math.cos(angle), y, r * Math.sin(angle));
+      } else if (t < 0.75) {
+        const jt = (t - 0.45) / 0.3;
+        const sign = hh(i * 4.1) > 0.5 ? 1 : -1;
+        const height = sign * jt * 75;
+        const spread = jt * jt * 6;
+        const twist = jt * Math.PI * 5;
+        const angle = hh(i * 5.3) * Math.PI * 2 + twist;
+        const r = hh(i * 6.7) * spread;
+        return new THREE.Vector3(r * Math.cos(angle), height, r * Math.sin(angle));
+      } else {
+        const phi = Math.acos(1 - 2 * hh(i * 7.1));
+        const theta = hh(i * 8.3) * Math.PI * 2;
+        const r = 4 + hh(i * 9.5) * 1.5;
+        return new THREE.Vector3(
+          r * Math.sin(phi) * Math.cos(theta),
+          r * Math.cos(phi),
+          r * Math.sin(phi) * Math.sin(theta)
+        );
+      }
+    };
+    COLOR_ASSIGNERS[2] = function(colors, sizes) {
+      const pal = OBJECTS[2].colors.map(c => new THREE.Color(c));
+      for (let i = 0; i < N; i++) {
+        const t = i / N;
+        let ci, b;
+        if (t < 0.45) {
+          ci = Math.floor(hh(i * 5.1) * 4);
+          b = 0.5 + (1 - t / 0.45) * 0.7;
+        } else if (t < 0.75) {
+          ci = 4 + Math.floor(hh(i * 5.1) * 2);
+          b = 0.4 + hh(i * 3.3) * 0.8;
+        } else {
+          ci = 5;
+          b = 0.8 + hh(i * 3.1) * 0.5;
+        }
+        const c = pal[ci];
+        colors[i*3] = c.r * b; colors[i*3+1] = c.g * b; colors[i*3+2] = c.b * b;
+        sizes[i] = t < 0.45 ? 0.4 + hh(i * 2.9) * 1.5 : (t < 0.75 ? 0.5 + hh(i * 2.9) * 2.0 : 1.0 + hh(i * 2.9) * 2.5);
+      }
+    };
+
+    // ── Pulsar ──
+    GENERATORS[3] = function(i) {
+      const t = i / N;
+      if (t < 0.65) {
+        const dt = t / 0.65;
+        const LINES = 16;
+        const lineIdx = Math.floor(dt * LINES);
+        const lt = (dt * LINES) % 1;
+        const R0 = 8 + lineIdx * 3;
+        const phi = (lineIdx / LINES) * Math.PI * 2 + lineIdx * 0.18;
+        const lambda = (lt - 0.5) * Math.PI * 0.92;
+        const cosL = Math.cos(lambda);
+        const r = R0 * cosL * cosL;
+        const scatter = (hh(i * 3.1) - 0.5) * 1.0;
+        const sAngle = hh(i * 7.7) * Math.PI * 2;
+        return new THREE.Vector3(
+          r * cosL * Math.cos(phi) + Math.cos(sAngle) * scatter * 0.4,
+          r * Math.sin(lambda),
+          r * cosL * Math.sin(phi) + Math.sin(sAngle) * scatter * 0.4
+        );
+      } else {
+        const ji = i - Math.floor(N * 0.65);
+        const half = Math.floor((N - Math.floor(N * 0.65)) / 2);
+        const sign = ji < half ? 1 : -1;
+        const jt = (ji % half) / half;
+        const height = sign * jt * 85;
+        const spread = jt * jt * 8;
+        const twist = jt * Math.PI * 6;
+        const angle = hh(i * 4.3) * Math.PI * 2 + twist;
+        const r = hh(i * 9.1) * spread;
+        return new THREE.Vector3(
+          r * Math.cos(angle),
+          height,
+          r * Math.sin(angle)
+        );
+      }
+    };
+    COLOR_ASSIGNERS[3] = function(colors, sizes) {
+      const pal = OBJECTS[3].colors.map(c => new THREE.Color(c));
+      for (let i = 0; i < N; i++) {
+        const t = i / N;
+        let ci;
+        if (t < 0.65) {
+          ci = Math.floor(hh(i * 5.1) * 6);
+        } else {
+          ci = hh(i * 5.1) > 0.3 ? 5 : Math.floor(hh(i * 5.1) * 4);
+        }
+        const b = 0.5 + hh(i * 3.1) * 0.8;
+        const c = pal[ci];
+        colors[i*3] = c.r * b; colors[i*3+1] = c.g * b; colors[i*3+2] = c.b * b;
+        sizes[i] = t < 0.65 ? 0.6 + hh(i * 2.9) * 2.0 : 0.5 + hh(i * 2.9) * 2.5;
+      }
+    };
+
+    // ── Agujero Negro ──
+    GENERATORS[4] = function(i) {
+      const t = i / N;
+      if (t < 0.55) {
+        const dt = t / 0.55;
+        const innerR = 7;
+        const outerR = 55;
+        const r = innerR * Math.pow(outerR / innerR, dt);
+        const angle = dt * Math.PI * 14 + hh(i * 1.7) * 0.5;
+        const halfH = 3 * (1 - dt * 0.65) + hh(i * 2.9) * 1.8;
+        const y = (hh(i * 3.3) * 2 - 1) * halfH;
+        return new THREE.Vector3(r * Math.cos(angle), y, r * Math.sin(angle));
+      } else if (t < 0.82) {
+        const jt = (t - 0.55) / 0.27;
+        const sign = hh(i * 4.1) > 0.5 ? 1 : -1;
+        const height = sign * jt * 70;
+        const spread = jt * jt * 5.5;
+        const twist = jt * Math.PI * 4;
+        const angle = hh(i * 5.3) * Math.PI * 2 + twist;
+        const r = hh(i * 6.7) * spread;
+        return new THREE.Vector3(r * Math.cos(angle), height, r * Math.sin(angle));
+      } else {
+        const phi = Math.acos(1 - 2 * hh(i * 7.1));
+        const theta = hh(i * 8.3) * Math.PI * 2;
+        const r = 6 + hh(i * 9.5) * 1;
+        return new THREE.Vector3(
+          r * Math.sin(phi) * Math.cos(theta),
+          r * Math.cos(phi),
+          r * Math.sin(phi) * Math.sin(theta)
+        );
+      }
+    };
+    COLOR_ASSIGNERS[4] = function(colors, sizes) {
+      const pal = OBJECTS[4].colors.map(c => new THREE.Color(c));
+      for (let i = 0; i < N; i++) {
+        const t = i / N;
+        let ci, b;
+        if (t < 0.55) {
+          const dt = t / 0.55;
+          ci = dt < 0.3 ? (hh(i * 5.1) > 0.5 ? 3 : 4) : Math.floor(hh(i * 5.1) * 3);
+          b = 0.45 + (1 - dt) * 0.7;
+        } else if (t < 0.82) {
+          ci = 5;
+          b = 0.3 + hh(i * 3.3) * 0.5;
+        } else {
+          ci = 5;
+          b = 0.05 + hh(i * 3.1) * 0.1;
+        }
+        const c = pal[ci];
+        colors[i*3] = c.r * b; colors[i*3+1] = c.g * b; colors[i*3+2] = c.b * b;
+        sizes[i] = t < 0.55 ? 0.4 + hh(i * 2.9) * 1.5 : (t < 0.82 ? 0.5 + hh(i * 2.9) * 2.0 : 0.6 + hh(i * 2.9) * 1.0);
+      }
+    };
+
+    // ── Estrella de Neutron ──
+    GENERATORS[5] = function(i) {
+      const phi = Math.acos(1 - 2 * hh(i * 1.1));
+      const theta = Math.PI * (1 + Math.sqrt(5)) * i;
+      const pulse = Math.sin(phi * 8 + theta * 3) * 0.8;
+      const r = 16 + pulse + (hh(i * 2.3) - 0.5) * 0.6;
+      return new THREE.Vector3(
+        r * Math.sin(phi) * Math.cos(theta),
+        r * Math.cos(phi),
+        r * Math.sin(phi) * Math.sin(theta)
+      );
+    };
+    COLOR_ASSIGNERS[5] = function(colors, sizes) {
+      const pal = OBJECTS[5].colors.map(c => new THREE.Color(c));
+      for (let i = 0; i < N; i++) {
+        const ci = Math.floor(hh(i * 7.3) * pal.length);
+        const b = 0.55 + hh(i * 3.1) * 0.8;
+        const c = pal[ci];
+        colors[i*3] = c.r * b; colors[i*3+1] = c.g * b; colors[i*3+2] = c.b * b;
+        sizes[i] = 0.6 + hh(i * 2.9) * 2.2;
+      }
+    };
+
+    // ── Supernova ──
+    GENERATORS[6] = function(i) {
+      const t = i / N;
+      if (t < 0.3) {
+        const phi = Math.acos(1 - 2 * hh(i * 1.1));
+        const theta = hh(i * 2.3) * Math.PI * 2;
+        const r = hh(i * 3.7) * 8;
+        return new THREE.Vector3(
+          r * Math.sin(phi) * Math.cos(theta),
+          r * Math.cos(phi) * 0.7,
+          r * Math.sin(phi) * Math.sin(theta)
+        );
+      } else {
+        const shell = Math.floor((t - 0.3) / 0.7 * 4);
+        const st = ((t - 0.3) / 0.7 * 4) % 1;
+        const baseR = 10 + shell * 14;
+        const phi = Math.acos(1 - 2 * hh(i * 4.1));
+        const theta = hh(i * 5.3) * Math.PI * 2 + shell * 0.5;
+        const ripple = Math.sin(phi * 6 + theta * 4) * 3;
+        const expand = st * 5;
+        const r = baseR + ripple + expand + (hh(i * 6.1) - 0.5) * 4;
+        return new THREE.Vector3(
+          r * Math.sin(phi) * Math.cos(theta),
+          r * Math.cos(phi),
+          r * Math.sin(phi) * Math.sin(theta)
+        );
+      }
+    };
+    COLOR_ASSIGNERS[6] = function(colors, sizes) {
+      const pal = OBJECTS[6].colors.map(c => new THREE.Color(c));
+      for (let i = 0; i < N; i++) {
+        const t = i / N;
+        let ci;
+        if (t < 0.3) {
+          ci = hh(i * 5.1) > 0.6 ? 5 : (hh(i * 5.1) > 0.3 ? 3 : 4);
+        } else {
+          const shell = Math.floor((t - 0.3) / 0.7 * 4);
+          ci = shell % pal.length;
+        }
+        const b = 0.4 + hh(i * 3.1) * 1.0;
+        const c = pal[ci];
+        colors[i*3] = c.r * b; colors[i*3+1] = c.g * b; colors[i*3+2] = c.b * b;
+        sizes[i] = t < 0.3 ? 0.8 + hh(i * 2.9) * 2.0 : 0.5 + hh(i * 2.9) * 2.8;
+      }
+    };
+
+    // ── Planeta Nebuloso (Protoestrella) ──
+    GENERATORS[7] = function(i) {
+      const t = i / N;
+      if (t < 0.2) {
+        const phi = Math.acos(1 - 2 * hh(i * 1.1));
+        const theta = hh(i * 2.3) * Math.PI * 2;
+        const r = hh(i * 3.7) * 8;
+        return new THREE.Vector3(
+          r * Math.sin(phi) * Math.cos(theta),
+          r * Math.cos(phi) * 0.6,
+          r * Math.sin(phi) * Math.sin(theta)
+        );
+      } else {
+        const diskT = (t - 0.2) / 0.8;
+        const angle = diskT * Math.PI * 10 + hh(i * 1.7) * 0.4;
+        const r = 8 + diskT * 55;
+        const halfH = 4 * (1 - diskT * 0.5) + hh(i * 2.9) * 2;
+        const y = (hh(i * 3.3) * 2 - 1) * halfH;
+        const swirl = Math.sin(angle * 2 + r * 0.1) * 2;
+        return new THREE.Vector3(
+          r * Math.cos(angle),
+          y + swirl,
+          r * Math.sin(angle)
+        );
+      }
+    };
+    COLOR_ASSIGNERS[7] = function(colors, sizes) {
+      const pal = OBJECTS[7].colors.map(c => new THREE.Color(c));
+      for (let i = 0; i < N; i++) {
+        const t = i / N;
+        let ci;
+        if (t < 0.2) {
+          ci = hh(i * 5.1) > 0.5 ? 3 : 4;
+        } else {
+          ci = Math.floor(hh(i * 7.3) * pal.length);
+        }
+        const b = 0.4 + hh(i * 3.1) * 0.95;
+        const c = pal[ci];
+        colors[i*3] = c.r * b; colors[i*3+1] = c.g * b; colors[i*3+2] = c.b * b;
+        sizes[i] = t < 0.2 ? 1.0 + hh(i * 2.9) * 2.5 : 0.4 + hh(i * 2.9) * 2.0;
+      }
+    };
+
+    /* ═══════════════════════════════════════
+       Escena Three.js
+    ═══════════════════════════════════════ */
+    let scene, camera, renderer, composer, controls, bloomPass;
+    let dataNodes, bgStars;
+    let time = 0, currentViz = 0;
+    let isTransforming = false, transformProgress = 0;
+    const TRANSFORM_SPEED = 0.014;
+
+    function makeParticleTexture() {
+      const c = document.createElement('canvas');
+      c.width = c.height = 128;
+      const ctx = c.getContext('2d');
+      const g = ctx.createRadialGradient(64,64,0,64,64,64);
+      g.addColorStop(0,    'rgba(255,255,255,1.0)');
+      g.addColorStop(0.12, 'rgba(255,255,255,0.92)');
+      g.addColorStop(0.35, 'rgba(220,235,255,0.42)');
+      g.addColorStop(0.7,  'rgba(180,210,255,0.08)');
+      g.addColorStop(1,    'rgba(0,0,0,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0,0,128,128);
+      const t = new THREE.CanvasTexture(c);
+      t.needsUpdate = true;
+      return t;
+    }
+
+    function buildDataNodes() {
+      const geo = new THREE.BufferGeometry();
+      const pos = new Float32Array(N * 3);
+      const col = new Float32Array(N * 3);
+      const siz = new Float32Array(N);
+
+      for (let i = 0; i < N; i++) {
+        const p = GENERATORS[currentViz](i);
+        pos[i*3] = p.x; pos[i*3+1] = p.y; pos[i*3+2] = p.z;
+      }
+      COLOR_ASSIGNERS[currentViz](col, siz);
+
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+      geo.setAttribute('size', new THREE.BufferAttribute(siz, 1));
+      geo.userData.currentColors = new Float32Array(col);
+
+      const mat = new THREE.PointsMaterial({
+        size: 2.6, map: makeParticleTexture(),
+        vertexColors: true, transparent: true,
+        blending: THREE.AdditiveBlending, depthWrite: false
+      });
+      dataNodes = new THREE.Points(geo, mat);
+      scene.add(dataNodes);
+    }
+
+    function buildBgStars() {
+      const geo = new THREE.BufferGeometry();
+      const starN = 5000;
+      const pos = new Float32Array(starN * 3);
+      const col = new Float32Array(starN * 3);
+      for (let i = 0; i < starN; i++) {
+        const r = 250 + Math.random() * 600;
+        const phi = Math.random() * Math.PI * 2;
+        const th = Math.random() * Math.PI;
+        pos[i*3]   = r * Math.sin(th) * Math.cos(phi);
+        pos[i*3+1] = r * Math.sin(th) * Math.sin(phi);
+        pos[i*3+2] = r * Math.cos(th);
+        const v = 0.05 + Math.random() * 0.22;
+        const tint = hh(i * 1.3);
+        col[i*3] = v * (tint > 0.7 ? 0.9 : 0.7);
+        col[i*3+1] = v * 0.85;
+        col[i*3+2] = v * (tint < 0.3 ? 1.0 : 0.8);
+      }
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+      const mat = new THREE.PointsMaterial({
+        size: 0.65, vertexColors: true, transparent: true,
+        opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false
+      });
+      bgStars = new THREE.Points(geo, mat);
+      scene.add(bgStars);
+    }
+
+    function init() {
+      scene = new THREE.Scene();
+      scene.fog = new THREE.FogExp2(0x020308, 0.0005);
+
+      camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.1, 2000);
+      camera.position.set(0, 15, 90);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+      renderer.setSize(innerWidth, innerHeight);
+      renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.0;
+      document.getElementById('container').appendChild(renderer.domElement);
+
+      controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.07;
+      controls.rotateSpeed = 0.5;
+      controls.zoomSpeed = 0.8;
+      controls.minDistance = 25;
+      controls.maxDistance = 280;
+      controls.enablePan = false;
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 0.2;
+
+      composer = new EffectComposer(renderer);
+      composer.addPass(new RenderPass(scene, camera));
+      bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.50, 0.4, 0.85);
+      composer.addPass(bloomPass);
+      composer.addPass(new OutputPass());
+
+      buildDataNodes();
+      buildBgStars();
+      setupUI();
+      setupEvents();
+      showInfo(currentViz);
+      animate();
+    }
+
+    function setupUI() {
+      const pills = document.getElementById('shape-pills');
+      OBJECTS.forEach((o, i) => {
+        const pill = document.createElement('div');
+        pill.className = 'shape-pill' + (i === currentViz ? ' active' : '');
+        const dot = document.createElement('div');
+        dot.className = 'pill-dot';
+        dot.style.background = '#' + new THREE.Color(o.colors[0]).getHexString();
+        pill.appendChild(dot);
+        pill.appendChild(document.createTextNode(o.name));
+        pill.addEventListener('click', () => goTo(i));
+        pills.appendChild(pill);
+      });
+
+      document.getElementById('next-btn').addEventListener('click', () => {
+        goTo((currentViz + 1) % OBJECTS.length);
+      });
+    }
+
+    function showInfo(idx) {
+      const o = OBJECTS[idx];
+      document.getElementById('obj-name').textContent = o.name;
+      document.getElementById('obj-name').style.color = '#' + new THREE.Color(o.colors[0]).getHexString();
+      document.getElementById('obj-category').textContent = o.category;
+      document.getElementById('obj-desc').textContent = o.desc;
+      const grid = document.getElementById('info-grid');
+      grid.innerHTML = '';
+      for (const [k, v] of Object.entries(o.info)) {
+        grid.innerHTML += `<div class="info-item"><div class="label">${k}</div><div class="value">${v}</div></div>`;
+      }
+      document.getElementById('mode-display').textContent = o.name;
+    }
+
+    function goTo(idx) {
+      if (isTransforming || idx === currentViz) return;
+      startTransform(idx);
+      showInfo(idx);
+      document.querySelectorAll('.shape-pill').forEach((b, i) => b.classList.toggle('active', i === idx));
+    }
+
+    function startTransform(nextViz) {
+      isTransforming = true;
+      transformProgress = 0;
+
+      const pos = dataNodes.geometry.attributes.position.array;
+      const col = dataNodes.geometry.attributes.color.array;
+      const siz = dataNodes.geometry.attributes.size.array;
+
+      const fromPos = new Float32Array(pos);
+      const fromCol = new Float32Array(dataNodes.geometry.userData.currentColors);
+      const fromSiz = new Float32Array(siz);
+
+      const toPos = new Float32Array(N * 3);
+      const toCol = new Float32Array(N * 3);
+      const toSiz = new Float32Array(N);
+
+      for (let i = 0; i < N; i++) {
+        const p = GENERATORS[nextViz](i);
+        toPos[i*3] = p.x; toPos[i*3+1] = p.y; toPos[i*3+2] = p.z;
+      }
+      COLOR_ASSIGNERS[nextViz](toCol, toSiz);
+
+      dataNodes.userData = { fromPos, toPos, fromCol, toCol, fromSiz, toSiz, targetViz: nextViz };
+    }
+
+    function animateParticles() {
+      if (!dataNodes || isTransforming) return;
+      const pos = dataNodes.geometry.attributes.position.array;
+      for (let i = 0; i < N; i++) {
+        const x = pos[i*3], z = pos[i*3+2];
+        const sp = 0.0004;
+        pos[i*3]   = x * Math.cos(sp) - z * Math.sin(sp);
+        pos[i*3+2] = x * Math.sin(sp) + z * Math.cos(sp);
+      }
+      dataNodes.geometry.attributes.position.needsUpdate = true;
+    }
+
+    function setupEvents() {
+      window.addEventListener('resize', () => {
+        camera.aspect = innerWidth / innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(innerWidth, innerHeight);
+        composer.setSize(innerWidth, innerHeight);
+      });
+
+      document.getElementById('btn-start').addEventListener('click', () => {
+        document.getElementById('instructions-overlay').classList.add('hidden');
+        document.getElementById('hud').classList.add('visible');
+        document.getElementById('control-panel').classList.add('visible');
+        setTimeout(() => document.getElementById('info-panel').classList.add('visible'), 300);
+      });
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      time += 0.01;
+      controls.update();
+
+      if (bgStars) {
+        bgStars.rotation.y += 0.00012;
+        bgStars.rotation.x += 0.00005;
+      }
+
+      const targetBloom = OBJECTS[currentViz].bloom;
+      bloomPass.strength += (targetBloom - bloomPass.strength) * 0.04;
+
+      if (isTransforming) {
+        transformProgress += TRANSFORM_SPEED;
+        const ud = dataNodes.userData;
+        const pos = dataNodes.geometry.attributes.position.array;
+        const col = dataNodes.geometry.attributes.color.array;
+        const siz = dataNodes.geometry.attributes.size.array;
+
+        if (transformProgress >= 1) {
+          pos.set(ud.toPos); col.set(ud.toCol); siz.set(ud.toSiz);
+          dataNodes.geometry.userData.currentColors = new Float32Array(ud.toCol);
+          currentViz = ud.targetViz;
+          isTransforming = false;
+          transformProgress = 0;
+        } else {
+          const t = transformProgress;
+          const e = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3) / 2;
+          for (let i = 0; i < pos.length; i++) {
+            pos[i] = ud.fromPos[i] * (1-e) + ud.toPos[i] * e;
+            col[i] = ud.fromCol[i] * (1-e) + ud.toCol[i] * e;
+          }
+          for (let i = 0; i < siz.length; i++) {
+            siz[i] = ud.fromSiz[i] * (1-e) + ud.toSiz[i] * e;
+          }
+        }
+        dataNodes.geometry.attributes.position.needsUpdate = true;
+        dataNodes.geometry.attributes.color.needsUpdate = true;
+        dataNodes.geometry.attributes.size.needsUpdate = true;
+      } else {
+        animateParticles();
+      }
+
+      composer.render();
+    }
+
+    window.addEventListener('load', init);
+  </script>
+</body>
+</html>

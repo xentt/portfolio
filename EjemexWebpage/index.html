@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuerpo de Fuerzas Especiales - Ejercito Mexicano</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;700&family=Share+Tech+Mono&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{overflow:hidden;background:#0a0c0a;font-family:'Oswald',sans-serif;width:100vw;height:100vh;user-select:none}
+.scene{position:relative;width:100vw;height:100vh;overflow:hidden}
+.layer{position:absolute;top:0;left:0;width:100%;height:100%;will-change:transform}
+.layer svg{width:100%;height:100%;display:block}
+
+/* CROSSHAIR */
+.crosshair{position:fixed;z-index:9999;pointer-events:none;mix-blend-mode:difference}
+.ch-ring{width:32px;height:32px;border:1.5px solid rgba(200,170,90,.6);border-radius:50%;position:absolute;top:-16px;left:-16px;transition:transform .15s,border-color .15s}
+.ch-dot{width:4px;height:4px;background:#c8aa5a;border-radius:50%;position:absolute;top:-2px;left:-2px}
+.ch-line{position:absolute;background:rgba(200,170,90,.4)}
+.ch-top{width:1.5px;height:8px;top:-24px;left:-.75px}
+.ch-bot{width:1.5px;height:8px;top:16px;left:-.75px}
+.ch-left{width:8px;height:1.5px;top:-.75px;left:-24px}
+.ch-right{width:8px;height:1.5px;top:-.75px;left:16px}
+.crosshair.active .ch-ring{transform:scale(1.5);border-color:rgba(200,170,90,1)}
+
+/* TITLE */
+.title-block{position:absolute;bottom:6vh;left:5vw;z-index:50;pointer-events:none}
+.t-label{font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:.4em;color:rgba(200,170,90,.5);text-transform:uppercase;margin-bottom:.4rem;opacity:0;animation:fadeR .8s ease .3s forwards}
+.title-block h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.2rem,6.5vw,5.5rem);letter-spacing:.1em;color:rgba(232,224,208,.92);line-height:.88;text-shadow:0 0 40px rgba(0,0,0,.9),0 2px 12px rgba(0,0,0,.7);opacity:0;animation:fadeR 1s ease .6s forwards}
+.title-block h1 span{display:block;font-size:.38em;letter-spacing:.4em;color:rgba(200,170,90,.6);margin-top:.3em}
+.t-line{width:60px;height:1.5px;background:linear-gradient(90deg,#c8aa5a,transparent);margin:.8rem 0;opacity:0;animation:fadeR .6s ease 1s forwards}
+.t-sub{font-family:'Share Tech Mono',monospace;font-size:.55rem;letter-spacing:.3em;color:rgba(180,160,120,.4);text-transform:uppercase;opacity:0;animation:fadeR .6s ease 1.2s forwards}
+
+/* HUD */
+.hud{position:absolute;z-index:50;pointer-events:none;opacity:0;animation:fadeIn 1s ease 1.5s forwards}
+.hud-tl{top:3vh;left:3vw}
+.hud-br{bottom:3vh;right:3vw}
+.hud-tr{top:3vh;right:3vw}
+.hud-label{font-family:'Share Tech Mono',monospace;font-size:.5rem;letter-spacing:.25em;color:rgba(200,170,90,.35);text-transform:uppercase}
+.hud-val{font-family:'Share Tech Mono',monospace;font-size:.9rem;color:rgba(200,170,90,.5);margin-top:2px}
+.hud-val .num{color:rgba(200,170,90,.7)}
+
+/* NV HINT */
+.nv-hint{position:absolute;bottom:3vh;left:50%;transform:translateX(-50%);z-index:50;display:flex;align-items:center;gap:8px;opacity:0;animation:fadeIn .8s ease 2.5s forwards;pointer-events:none}
+.nv-hint .key{font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:.15em;color:rgba(200,170,90,.5);border:1px solid rgba(200,170,90,.2);padding:3px 8px;border-radius:3px}
+.nv-hint .desc{font-family:'Share Tech Mono',monospace;font-size:.5rem;letter-spacing:.2em;color:rgba(200,170,90,.3);text-transform:uppercase}
+
+/* INFO PANEL */
+.info-panel{position:fixed;z-index:9990;background:rgba(8,12,6,.94);border:1px solid rgba(200,170,90,.15);padding:1.2rem 1.6rem;max-width:300px;opacity:0;transform:translateY(10px);transition:opacity .4s,transform .4s;pointer-events:none;backdrop-filter:blur(8px)}
+.info-panel.show{opacity:1;transform:translateY(0);pointer-events:auto}
+.ip-title{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:.12em;color:#c8aa5a;margin-bottom:.4rem}
+.ip-text{font-family:'Share Tech Mono',monospace;font-size:.62rem;line-height:1.9;color:rgba(200,180,140,.6)}
+.ip-close{position:absolute;top:.4rem;right:.6rem;font-family:'Share Tech Mono',monospace;font-size:.6rem;color:rgba(200,170,90,.3);cursor:pointer;pointer-events:auto}
+.ip-close:hover{color:#c8aa5a}
+
+/* RIPPLE */
+.ripple{position:fixed;width:40px;height:40px;border:1px solid rgba(200,170,90,.4);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%) scale(0);animation:rippleOut .6s ease forwards}
+@keyframes rippleOut{to{transform:translate(-50%,-50%) scale(3);opacity:0}}
+
+/* FIREFLY */
+.firefly{position:absolute;width:3px;height:3px;background:rgba(200,170,90,.6);border-radius:50%;pointer-events:none;z-index:44;box-shadow:0 0 6px rgba(200,170,90,.3);transition:transform .3s ease-out}
+
+/* AMBIENT CANVAS */
+#ambientCanvas{position:absolute;top:0;left:0;width:100%;height:100%;z-index:42;pointer-events:none}
+
+/* CLICK ZONES */
+.click-zone{position:absolute;z-index:55;cursor:pointer;pointer-events:auto;transition:transform .2s}
+.click-zone:hover{transform:scale(1.15)}
+.cz-ring{width:26px;height:26px;border:1px solid rgba(200,170,90,.25);border-radius:50%;display:flex;align-items:center;justify-content:center;animation:czPulse 3s ease-in-out infinite}
+.cz-ring svg{width:10px;height:10px;fill:none;stroke:rgba(200,170,90,.5);stroke-width:2}
+@keyframes czPulse{0%,100%{box-shadow:0 0 0 0 rgba(200,170,90,.1)}50%{box-shadow:0 0 0 8px rgba(200,170,90,0)}}
+.cz-label{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);white-space:nowrap;font-family:'Share Tech Mono',monospace;font-size:.5rem;letter-spacing:.12em;color:rgba(200,170,90,.8);text-transform:uppercase;opacity:0;transition:opacity .3s;pointer-events:none;background:rgba(8,12,6,.85);padding:3px 8px;border:1px solid rgba(200,170,90,.2);border-radius:2px;z-index:56}
+.click-zone:hover .cz-label{opacity:1}
+
+/* OVERLAYS */
+.vignette{position:absolute;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,.55) 100%);z-index:45;pointer-events:none}
+.grain{position:absolute;top:0;left:0;width:100%;height:100%;z-index:46;pointer-events:none;opacity:.03;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:256px 256px}
+.scanline{position:absolute;top:0;left:0;width:100%;height:100%;z-index:47;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.02) 2px,rgba(0,0,0,.02) 4px);opacity:0;animation:fadeIn 1s ease 2s forwards}
+.fog{position:absolute;width:200%;height:100%;top:0;left:-50%;opacity:.1;animation:fogDrift 40s linear infinite;pointer-events:none;z-index:40}
+@keyframes fogDrift{0%{transform:translateX(0)}100%{transform:translateX(20%)}}
+.nv-overlay{position:absolute;top:0;left:0;width:100%;height:100%;z-index:48;pointer-events:none;background:radial-gradient(ellipse at center,rgba(0,40,0,.08),rgba(0,20,0,.15));mix-blend-mode:screen;opacity:0;transition:opacity .5s}
+.nv-overlay.active{opacity:1}
+
+@keyframes fadeR{from{opacity:0;transform:translateX(-15px)}to{opacity:1;transform:translateX(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes breathe{0%,100%{transform:translateY(0)}50%{transform:translateY(1px)}}
+@keyframes lookAround{0%,70%,100%{transform:rotate(0)}78%{transform:rotate(1.2deg)}88%{transform:rotate(-0.8deg)}}
+@keyframes ledBlink{0%,100%{opacity:.15}50%{opacity:.9}}
+#torsoGroup{animation:breathe 4s ease-in-out infinite;transform-box:fill-box;transform-origin:center bottom}
+#headGroup{animation:lookAround 8s ease-in-out infinite;transform-box:fill-box;transform-origin:center bottom}
+#radioLed{animation:ledBlink 2s ease-in-out infinite}
+</style>
+</head>
+<body>
+
+<svg style="position:absolute;width:0;height:0">
+<defs>
+  <linearGradient id="skyG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0b1a0b"/><stop offset="35%" stop-color="#1a2e1a"/><stop offset="65%" stop-color="#2a3a20"/><stop offset="100%" stop-color="#1a2810"/></linearGradient>
+  <linearGradient id="m1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a2a15"/><stop offset="100%" stop-color="#0d1508"/></linearGradient>
+  <linearGradient id="m2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#152510"/><stop offset="100%" stop-color="#0a1206"/></linearGradient>
+  <linearGradient id="m3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#102008"/><stop offset="100%" stop-color="#070e04"/></linearGradient>
+  <linearGradient id="gnd" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0a1206"/><stop offset="100%" stop-color="#050a03"/></linearGradient>
+  <radialGradient id="mGlow" cx=".5" cy=".5" r=".5"><stop offset="0%" stop-color="rgba(200,190,150,.22)"/><stop offset="100%" stop-color="rgba(200,190,150,0)"/></radialGradient>
+  <radialGradient id="spotGlow" cx=".5" cy=".3" r=".6"><stop offset="0%" stop-color="rgba(200,180,120,.08)"/><stop offset="100%" stop-color="rgba(0,0,0,0)"/></radialGradient>
+  <filter id="sh"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000" flood-opacity=".5"/></filter>
+  <filter id="gl"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <filter id="fogB"><feGaussianBlur stdDeviation="40"/></filter>
+</defs>
+</svg>
+
+<div class="scene" id="scene">
+
+<!-- L0: Sky -->
+<div class="layer" data-depth=".015">
+<svg viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+<rect width="1920" height="1080" fill="url(#skyG)"/>
+<g class="stars" opacity=".5">
+  <circle cx="100" cy="60" r="1" fill="#ddd"/><circle cx="250" cy="130" r=".7" fill="#ccc"/><circle cx="430" cy="50" r="1.1" fill="#ddd"/><circle cx="600" cy="160" r=".6" fill="#bbb"/><circle cx="780" cy="80" r="1" fill="#ddd"/><circle cx="920" cy="190" r=".5" fill="#ccc"/><circle cx="1080" cy="55" r="1.2" fill="#eee"/><circle cx="1230" cy="145" r=".8" fill="#ddd"/><circle cx="1380" cy="95" r=".7" fill="#ccc"/><circle cx="1530" cy="40" r=".9" fill="#ddd"/><circle cx="1680" cy="125" r=".6" fill="#bbb"/><circle cx="1830" cy="75" r="1.1" fill="#ddd"/><circle cx="180" cy="230" r=".4" fill="#aaa"/><circle cx="390" cy="200" r=".5" fill="#bbb"/><circle cx="700" cy="260" r=".35" fill="#999"/><circle cx="1000" cy="220" r=".6" fill="#bbb"/><circle cx="1300" cy="240" r=".45" fill="#aaa"/><circle cx="1600" cy="195" r=".5" fill="#bbb"/>
+</g>
+<!-- Moon glow -->
+<circle cx="1520" cy="160" r="90" fill="url(#mGlow)"/>
+<circle cx="1520" cy="160" r="28" fill="rgba(220,210,170,.1)"/>
+<circle cx="1520" cy="160" r="19" fill="rgba(230,220,180,.15)"/>
+<!-- Spot light on soldier area -->
+<ellipse cx="960" cy="500" rx="500" ry="400" fill="url(#spotGlow)"/>
+</svg>
+</div>
+
+<!-- L1: Far mountains -->
+<div class="layer" data-depth=".04">
+<svg viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+<path d="M0,680 L160,510 L320,570 L480,430 L640,540 L800,400 L960,520 L1120,380 L1280,500 L1440,410 L1600,520 L1760,440 L1920,480 L1920,1080 L0,1080Z" fill="url(#m1)" opacity=".5"/>
+</svg>
+</div>
+
+<!-- L2: Mid mountains -->
+<div class="layer" data-depth=".08">
+<svg viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+<path d="M-60,760 L100,600 L260,660 L420,540 L580,640 L740,500 L900,610 L1060,520 L1220,590 L1380,510 L1540,580 L1700,530 L1920,550 L1920,1080 L0,1080Z" fill="url(#m2)" opacity=".6"/>
+<g fill="#0d1a06" opacity=".4">
+  <path d="M200,630 L212,585 L224,630Z"/><path d="M240,640 L258,580 L276,640Z"/><path d="M420,585 L436,535 L452,585Z"/><path d="M720,555 L738,500 L756,555Z"/><path d="M1120,575 L1136,525 L1152,575Z"/><path d="M1320,565 L1338,515 L1356,565Z"/><path d="M1620,580 L1636,530 L1652,580Z"/>
+</g>
+</svg>
+</div>
+
+<!-- L3: Near hills -->
+<div class="layer" data-depth=".14">
+<svg viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+<path d="M-100,860 L60,720 L220,770 L380,680 L540,750 L700,660 L860,730 L1020,670 L1180,740 L1340,680 L1500,730 L1660,690 L1820,740 L1920,700 L1920,1080 L0,1080Z" fill="url(#m3)" opacity=".78"/>
+<g fill="#080f04" opacity=".6">
+  <path d="M100,750 L118,690 L136,750Z"/><path d="M140,760 L162,690 L184,760Z"/><path d="M320,720 L342,660 L364,720Z"/><path d="M560,710 L580,650 L600,710Z"/><path d="M870,700 L890,640 L910,700Z"/><path d="M1160,710 L1180,650 L1200,710Z"/><path d="M1460,710 L1480,655 L1500,710Z"/><path d="M1760,720 L1780,665 L1800,720Z"/>
+</g>
+</svg>
+</div>
+
+<!-- L4: Vegetation -->
+<div class="layer" data-depth=".22">
+<svg viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+<g fill="#060c03">
+  <ellipse cx="80" cy="910" rx="170" ry="110"/><ellipse cx="230" cy="930" rx="110" ry="85"/><ellipse cx="30" cy="950" rx="90" ry="70"/>
+  <ellipse cx="1770" cy="900" rx="190" ry="120"/><ellipse cx="1620" cy="920" rx="120" ry="95"/><ellipse cx="1890" cy="940" rx="100" ry="80"/>
+</g>
+<g stroke="#0a1504" stroke-width="2" fill="none" opacity=".65">
+  <path d="M70,930 Q76,875 66,835"/><path d="M92,935 Q104,870 88,830"/><path d="M114,940 Q108,880 118,840"/>
+  <path d="M1790,930 Q1796,875 1786,835"/><path d="M1812,935 Q1824,870 1808,830"/><path d="M1834,940 Q1828,880 1838,840"/>
+</g>
+<rect x="0" y="955" width="1920" height="125" fill="url(#gnd)"/>
+</svg>
+</div>
+
+<!-- L5: SOLDIER -->
+<div class="layer" data-depth=".35" id="soldierLayer">
+<svg viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+<g id="soldierGroup" transform="translate(960,280) scale(1.5)" filter="url(#sh)">
+
+  <!-- Shadow -->
+  <ellipse cx="0" cy="480" rx="100" ry="16" fill="rgba(0,0,0,.3)"/>
+
+  <!-- ====== BOOTS ====== -->
+  <rect x="-40" y="430" width="30" height="50" rx="4" fill="#1a1a10"/>
+  <rect x="10" y="430" width="30" height="50" rx="4" fill="#1a1a10"/>
+  <rect x="-44" y="475" width="38" height="8" rx="3" fill="#111"/>
+  <rect x="6" y="475" width="38" height="8" rx="3" fill="#111"/>
+  <!-- Boot laces -->
+  <g stroke="#2a2a18" stroke-width=".8" fill="none">
+    <line x1="-28" y1="435" x2="-18" y2="435"/><line x1="-28" y1="442" x2="-18" y2="442"/><line x1="-28" y1="449" x2="-18" y2="449"/><line x1="-28" y1="456" x2="-18" y2="456"/>
+    <line x1="22" y1="435" x2="32" y2="435"/><line x1="22" y1="442" x2="32" y2="442"/><line x1="22" y1="449" x2="32" y2="449"/><line x1="22" y1="456" x2="32" y2="456"/>
+  </g>
+  <!-- Boot treads -->
+  <g fill="#0a0a06">
+    <rect x="-44" y="481" width="38" height="2" rx="1"/><rect x="6" y="481" width="38" height="2" rx="1"/>
+  </g>
+
+  <!-- ====== LEGS - Camo ====== -->
+  <path d="M-35,310 L-40,430 L-10,430 L-6,310Z" fill="#3a4a2a"/>
+  <path d="M6,310 L10,430 L40,430 L35,310Z" fill="#3a4a2a"/>
+  <!-- Camo pattern -->
+  <g opacity=".45">
+    <ellipse cx="-24" cy="340" rx="9" ry="5" fill="#2a3518"/>
+    <ellipse cx="-22" cy="370" rx="7" ry="4" fill="#4a5a38"/>
+    <ellipse cx="-26" cy="400" rx="8" ry="3" fill="#2a3518"/>
+    <ellipse cx="-18" cy="355" rx="5" ry="3" fill="#4a5a38"/>
+    <ellipse cx="24" cy="345" rx="8" ry="5" fill="#2a3518"/>
+    <ellipse cx="26" cy="375" rx="9" ry="4" fill="#4a5a38"/>
+    <ellipse cx="20" cy="405" rx="7" ry="3" fill="#2a3518"/>
+    <ellipse cx="28" cy="360" rx="5" ry="3" fill="#4a5a38"/>
+  </g>
+  <!-- Knee pads -->
+  <rect x="-37" y="380" width="28" height="14" rx="4" fill="#2a2a18" opacity=".6"/>
+  <rect x="9" y="380" width="28" height="14" rx="4" fill="#2a2a18" opacity=".6"/>
+  <!-- Knee pad detail -->
+  <rect x="-34" y="383" width="22" height="8" rx="2" fill="#222" opacity=".4"/>
+  <rect x="12" y="383" width="22" height="8" rx="2" fill="#222" opacity=".4"/>
+
+  <!-- ====== TORSO ====== -->
+  <g id="torsoGroup">
+  <path d="M-48,160 L-52,310 L52,310 L48,160Z" fill="#3a4a2a"/>
+  <!-- Camo torso -->
+  <g opacity=".35">
+    <ellipse cx="-18" cy="190" rx="14" ry="6" fill="#2a3518"/>
+    <ellipse cx="18" cy="205" rx="12" ry="5" fill="#4a5a38"/>
+    <ellipse cx="-14" cy="235" rx="16" ry="6" fill="#2a3518"/>
+    <ellipse cx="16" cy="260" rx="13" ry="5" fill="#4a5a38"/>
+    <ellipse cx="-22" cy="285" rx="10" ry="4" fill="#2a3518"/>
+    <ellipse cx="10" cy="295" rx="11" ry="4" fill="#4a5a38"/>
+  </g>
+
+  <!-- ====== TACTICAL VEST ====== -->
+  <path d="M-46,165 L-50,300 L50,300 L46,165Z" fill="#2a3020" opacity=".5"/>
+  <!-- MOLLE rows -->
+  <g stroke="#3a4030" stroke-width="1.5" fill="none" opacity=".4">
+    <line x1="-38" y1="185" x2="38" y2="185"/>
+    <line x1="-40" y1="205" x2="40" y2="205"/>
+    <line x1="-42" y1="225" x2="42" y2="225"/>
+    <line x1="-43" y1="245" x2="43" y2="245"/>
+    <line x1="-44" y1="265" x2="44" y2="265"/>
+    <line x1="-45" y1="285" x2="45" y2="285"/>
+  </g>
+  <!-- Mag pouches -->
+  <rect x="-34" y="192" width="14" height="28" rx="2" fill="#252a18"/>
+  <rect x="-16" y="192" width="14" height="28" rx="2" fill="#252a18"/>
+  <rect x="2" y="192" width="14" height="28" rx="2" fill="#252a18"/>
+  <!-- Mag pouch flaps -->
+  <rect x="-35" y="190" width="16" height="5" rx="1" fill="#2a2a1a"/>
+  <rect x="-17" y="190" width="16" height="5" rx="1" fill="#2a2a1a"/>
+  <rect x="1" y="190" width="16" height="5" rx="1" fill="#2a2a1a"/>
+  <!-- Radio pouch -->
+  <rect x="22" y="182" width="15" height="24" rx="2" fill="#252a18"/>
+  <!-- Radio antenna -->
+  <line x1="29" y1="182" x2="29" y2="168" stroke="#1a1a12" stroke-width="1.5"/>
+  <circle id="radioLed" cx="29" cy="168" r="1.5" fill="rgba(0,255,80,.7)"/>
+  <!-- IFAK pouch (back) -->
+  <rect x="-46" y="260" width="12" height="18" rx="2" fill="#252a18" opacity=".7"/>
+
+  <!-- Mexican flag patch -->
+  <g transform="translate(38,172)">
+    <rect width="18" height="12" rx="1" fill="#fff" opacity=".85"/>
+    <rect width="6" height="12" fill="#006847" rx="1"/>
+    <rect x="6" width="6" height="12" fill="#fff"/>
+    <rect x="12" width="6" height="12" fill="#ce1126" rx="1"/>
+    <rect width="18" height="12" rx="1" fill="none" stroke="#444" stroke-width=".5"/>
+    <!-- Eagle emblem hint -->
+    <circle cx="9" cy="6" r="2" fill="rgba(139,69,19,.3)"/>
+  </g>
+
+  <!-- CFE patch -->
+  <g transform="translate(-50,175)">
+    <rect width="14" height="16" rx="1" fill="#1a2a10"/>
+    <text x="7" y="6" text-anchor="middle" font-size="3.5" fill="#c8aa5a" font-family="sans-serif" font-weight="bold">CFE</text>
+    <path d="M4,9 L7,7.5 L10,9 L7,10.5Z" fill="#c8aa5a" opacity=".8"/>
+    <line x1="3" y1="12" x2="11" y2="12" stroke="#c8aa5a" stroke-width=".5" opacity=".5"/>
+  </g>
+
+  <!-- ====== ARMS ====== -->
+  <!-- Left arm (weapon) -->
+  <path d="M-48,165 L-64,218 L-58,224 L-44,175Z" fill="#3a4a2a"/>
+  <path d="M-64,218 L-69,265 L-60,268 L-56,224Z" fill="#3a4a2a"/>
+  <ellipse cx="-66" cy="268" rx="10" ry="7" fill="#1a1a10"/>
+  <!-- Glove detail -->
+  <path d="M-72,265 L-66,272 L-60,265" stroke="#2a2a18" stroke-width=".8" fill="none"/>
+  <g opacity=".3"><ellipse cx="-56" cy="195" rx="5" ry="3" fill="#2a3518"/><ellipse cx="-62" cy="240" rx="6" ry="3" fill="#4a5a38"/></g>
+
+  <!-- Right arm (support) -->
+  <path d="M48,165 L62,215 L56,220 L44,172Z" fill="#3a4a2a"/>
+  <path d="M62,215 L60,260 L52,263 L52,220Z" fill="#3a4a2a"/>
+  <ellipse cx="57" cy="263" rx="9" ry="6" fill="#1a1a10"/>
+  <path d="M51,260 L57,267 L63,260" stroke="#2a2a18" stroke-width=".8" fill="none"/>
+  <g opacity=".3"><ellipse cx="55" cy="192" rx="5" ry="3" fill="#2a3518"/><ellipse cx="60" cy="235" rx="5" ry="3" fill="#4a5a38"/></g>
+
+  <!-- ====== WEAPON - FX-05 Xiuhcoatl ====== -->
+  <g id="weaponGroup" transform="translate(-66,218)">
+    <!-- Stock -->
+    <path d="M-44,24 L-62,18 L-65,30 L-62,42 L-44,36Z" fill="#1a1a12"/>
+    <path d="M-58,22 L-58,38" stroke="#2a2a18" stroke-width="1"/>
+    <!-- Receiver -->
+    <rect x="-44" y="20" width="80" height="20" rx="2" fill="#222218"/>
+    <!-- Receiver lines -->
+    <line x1="-30" y1="22" x2="-30" y2="38" stroke="#2a2a1a" stroke-width=".5"/>
+    <line x1="20" y1="22" x2="20" y2="38" stroke="#2a2a1a" stroke-width=".5"/>
+    <!-- Handguard -->
+    <rect x="12" y="16" width="30" height="26" rx="2" fill="#2a2a1a"/>
+    <!-- Handguard vents -->
+    <g fill="#1a1a10" opacity=".45">
+      <rect x="16" y="19" width="20" height="2" rx="1"/><rect x="16" y="24" width="20" height="2" rx="1"/><rect x="16" y="29" width="20" height="2" rx="1"/><rect x="16" y="34" width="20" height="2" rx="1"/>
+    </g>
+    <!-- Barrel -->
+    <rect x="42" y="22" width="60" height="7" rx="1" fill="#1a1a12"/>
+    <rect x="42" y="31" width="60" height="5" rx="1" fill="#1a1a12"/>
+    <!-- Barrel holes -->
+    <g fill="#111" opacity=".3">
+      <circle cx="55" cy="25.5" r="1"/><circle cx="65" cy="25.5" r="1"/><circle cx="75" cy="25.5" r="1"/><circle cx="85" cy="25.5" r="1"/><circle cx="95" cy="25.5" r="1"/>
+    </g>
+    <!-- Magazine -->
+    <path d="M-6,40 L-3,92 L16,92 L19,40Z" fill="#1a1a12"/>
+    <rect x="-4" y="90" width="20" height="4" rx="1" fill="#222"/>
+    <!-- Magazine ribs -->
+    <line x1="0" y1="50" x2="0" y2="85" stroke="#222" stroke-width=".5"/>
+    <line x1="6" y1="50" x2="6" y2="85" stroke="#222" stroke-width=".5"/>
+    <line x1="12" y1="50" x2="12" y2="85" stroke="#222" stroke-width=".5"/>
+    <!-- Scope mount -->
+    <rect x="-24" y="14" width="34" height="7" rx="1" fill="#1a1a12"/>
+    <!-- Scope -->
+    <rect x="-20" y="4" width="24" height="12" rx="3" fill="#1a1a12"/>
+    <circle cx="-20" cy="10" r="5" fill="#0a0a06" stroke="#333" stroke-width=".5"/>
+    <circle cx="4" cy="10" r="4.5" fill="#0a0a06" stroke="#333" stroke-width=".5"/>
+    <circle cx="4" cy="10" r="2.5" fill="rgba(80,120,160,.1)"/>
+    <!-- Scope caps -->
+    <circle cx="-20" cy="10" r="5.5" fill="none" stroke="#1a1a12" stroke-width="1"/>
+    <!-- Muzzle brake -->
+    <rect x="102" y="20" width="10" height="14" rx="1" fill="#1a1a12"/>
+    <circle cx="112" cy="27" r="4" fill="#0a0a06"/>
+    <circle cx="112" cy="27" r="2.5" fill="#050505"/>
+    <!-- Muzzle prongs -->
+    <line x1="110" y1="20" x2="110" y2="18" stroke="#1a1a12" stroke-width="1.5"/>
+    <line x1="114" y1="20" x2="114" y2="18" stroke="#1a1a12" stroke-width="1.5"/>
+    <!-- Front sight -->
+    <rect x="36" y="12" width="3" height="6" fill="#1a1a12"/>
+    <!-- Rear sight -->
+    <rect x="-12" y="11" width="6" height="4" rx="1" fill="#1a1a12"/>
+    <!-- Pistol grip -->
+    <path d="M-34,36 L-39,62 L-29,62 L-26,36Z" fill="#1a1a12"/>
+    <!-- Grip texture -->
+    <g stroke="#222" stroke-width=".5" opacity=".4">
+      <line x1="-37" y1="42" x2="-31" y2="42"/><line x1="-37" y1="47" x2="-31" y2="47"/><line x1="-37" y1="52" x2="-31" y2="52"/><line x1="-37" y1="57" x2="-31" y2="57"/>
+    </g>
+    <!-- Trigger guard -->
+    <path d="M-28,38 Q-24,48 -18,38" stroke="#1a1a12" stroke-width="2" fill="none"/>
+    <!-- Trigger -->
+    <line x1="-23" y1="38" x2="-23" y2="43" stroke="#222" stroke-width="1.5"/>
+    <!-- Laser/flashlight rail -->
+    <rect x="14" y="12" width="10" height="5" rx="1" fill="#1a1a12"/>
+    <circle cx="24" cy="14.5" r="2" fill="rgba(200,50,50,.2)"/>
+    <!-- Sling mount -->
+    <circle cx="-42" cy="26" r="2" fill="#1a1a12" stroke="#222" stroke-width=".5"/>
+  </g>
+
+  <!-- ====== NECK ====== -->
+  <g id="headGroup">
+  <rect x="-12" y="135" width="24" height="30" rx="5" fill="#3a4a2a"/>
+
+  <!-- ====== HEAD ====== -->
+  <ellipse cx="0" cy="115" rx="32" ry="34" fill="#2a2a1a"/>
+  <!-- Balaclava -->
+  <path d="M-28,105 Q-32,122 -28,140 Q0,152 28,140 Q32,122 28,105 Q17,100 0,98 Q-17,100 -28,105Z" fill="#1a2a10"/>
+  <!-- Balaclava texture -->
+  <g stroke="#222a15" stroke-width=".3" fill="none" opacity=".3">
+    <path d="M-20,110 Q0,115 20,110"/><path d="M-22,120 Q0,125 22,120"/><path d="M-20,130 Q0,135 20,130"/>
+  </g>
+  <!-- Eyes -->
+  <ellipse id="eyeLO" cx="-12" cy="113" rx="7" ry="5" fill="#0a0a06"/>
+  <ellipse id="eyeRO" cx="12" cy="113" rx="7" ry="5" fill="#0a0a06"/>
+  <!-- Eye detail -->
+  <ellipse id="eyeLI" cx="-12" cy="113" rx="5" ry="3.5" fill="#1a1a10"/>
+  <ellipse id="eyeRI" cx="12" cy="113" rx="5" ry="3.5" fill="#1a1a10"/>
+  <circle cx="-10" cy="112" r="1.3" fill="rgba(180,160,120,.35)"/>
+  <circle cx="14" cy="112" r="1.3" fill="rgba(180,160,120,.35)"/>
+
+  <!-- ====== HELMET ====== -->
+  <path d="M-37,105 Q-40,82 -34,65 Q-17,48 0,46 Q17,48 34,65 Q40,82 37,105 Q24,100 0,98 Q-24,100 -37,105Z" fill="#2a3518"/>
+  <!-- Helmet camo cover -->
+  <g opacity=".4">
+    <ellipse cx="-18" cy="78" rx="10" ry="5" fill="#3a4a2a"/>
+    <ellipse cx="12" cy="72" rx="12" ry="6" fill="#4a5a38"/>
+    <ellipse cx="-6" cy="64" rx="8" ry="4" fill="#3a4a2a"/>
+    <ellipse cx="24" cy="84" rx="7" ry="4" fill="#4a5a38"/>
+    <ellipse cx="-24" cy="88" rx="6" ry="3" fill="#3a4a2a"/>
+    <ellipse cx="0" cy="56" rx="7" ry="3" fill="#4a5a38"/>
+  </g>
+  <!-- Helmet rim -->
+  <path d="M-37,105 Q-24,100 0,98 Q24,100 37,105" stroke="#222a15" stroke-width="1.5" fill="none"/>
+  <!-- NVG mount -->
+  <rect x="-6" y="56" width="12" height="10" rx="2" fill="#1a1a12"/>
+  <rect x="-4" y="54" width="8" height="4" rx="1" fill="#222"/>
+  <!-- NVG PVS-14 -->
+  <g transform="translate(0,48)">
+    <!-- Bridge -->
+    <rect x="-22" y="0" width="44" height="5" rx="2" fill="#1a1a12"/>
+    <!-- Left tube -->
+    <rect x="-22" y="-16" width="14" height="21" rx="3" fill="#1a1a12"/>
+    <circle cx="-15" cy="-16" r="6" fill="#0a1a06" stroke="#222" stroke-width=".5"/>
+    <circle cx="-15" cy="-16" r="4" fill="rgba(0,255,100,.05)"/>
+    <circle cx="-15" cy="-16" r="2" fill="rgba(0,200,80,.03)"/>
+    <!-- Right tube -->
+    <rect x="8" y="-16" width="14" height="21" rx="3" fill="#1a1a12"/>
+    <circle cx="15" cy="-16" r="6" fill="#0a1a06" stroke="#222" stroke-width=".5"/>
+    <circle cx="15" cy="-16" r="4" fill="rgba(0,255,100,.05)"/>
+    <circle cx="15" cy="-16" r="2" fill="rgba(0,200,80,.03)"/>
+    <!-- NVG indicator -->
+    <circle cx="0" cy="-2" r="2" fill="rgba(0,200,80,.2)" filter="url(#gl)"/>
+    <!-- NVG arm -->
+    <rect x="-8" y="-8" width="3" height="10" rx="1" fill="#1a1a12"/>
+    <rect x="5" y="-8" width="3" height="10" rx="1" fill="#1a1a12"/>
+  </g>
+  <!-- Helmet straps -->
+  <path d="M-29,105 Q-24,122 -12,128" stroke="#1a1a10" stroke-width="2" fill="none"/>
+  <path d="M29,105 Q24,122 12,128" stroke="#1a1a10" stroke-width="2" fill="none"/>
+  <!-- Headset -->
+  <rect x="-36" y="100" width="8" height="14" rx="2" fill="#1a1a12"/>
+  <rect x="28" y="100" width="8" height="14" rx="2" fill="#1a1a12"/>
+  <!-- Headset cushion -->
+  <rect x="-37" y="103" width="3" height="8" rx="1" fill="#222" opacity=".5"/>
+  <rect x="34" y="103" width="3" height="8" rx="1" fill="#222" opacity=".5"/>
+  <!-- Mic boom -->
+  <path d="M-36,112 Q-42,124 -33,136" stroke="#1a1a12" stroke-width="2.5" fill="none"/>
+  <circle cx="-33" cy="137" r="4" fill="#1a1a12"/>
+  <circle cx="-33" cy="137" r="2.5" fill="#222"/>
+  <!-- PTT switch -->
+  <rect x="-40" y="120" width="6" height="8" rx="1" fill="#1a1a12"/>
+  </g>
+
+  <!-- ====== BELT ====== -->
+  <rect x="-50" y="300" width="100" height="10" rx="2" fill="#1a1a12"/>
+  <rect x="-6" y="301" width="12" height="8" rx="1" fill="#333"/>
+  <!-- Belt pouches -->
+  <rect x="-52" y="295" width="10" height="12" rx="1" fill="#252a18" opacity=".6"/>
+  <rect x="42" y="295" width="10" height="12" rx="1" fill="#252a18" opacity=".6"/>
+
+  <!-- ====== HOLSTER ====== -->
+  <g transform="translate(38,335)">
+    <rect width="16" height="34" rx="2" fill="#1a1a12"/>
+    <path d="M4,-5 L6,10 L13,10 L15,-5Z" fill="#222"/>
+    <rect x="-2" y="12" width="20" height="3" rx="1" fill="#252a18"/>
+    <rect x="-2" y="24" width="20" height="3" rx="1" fill="#252a18"/>
+    <!-- Holster snap -->
+    <circle cx="8" cy="6" r="1.5" fill="#333"/>
+  </g>
+
+  <!-- ====== DROP LEG LEFT ====== -->
+  <g transform="translate(-52,348)">
+    <rect width="14" height="38" rx="2" fill="#252a18"/>
+    <rect x="-1" y="10" width="16" height="3" rx="1" fill="#1a1a12"/>
+    <rect x="-1" y="26" width="16" height="3" rx="1" fill="#1a1a12"/>
+    <!-- Knife sheath -->
+    <rect x="2" y="2" width="4" height="20" rx="1" fill="#1a1a12"/>
+    <rect x="3" y="-2" width="2" height="5" rx="1" fill="#333"/>
+  </g>
+
+  <!-- ====== BACKPACK STRAPS ====== -->
+  <path d="M-40,165 Q-44,175 -46,185" stroke="#2a3020" stroke-width="4" fill="none"/>
+  <path d="M40,165 Q44,175 46,185" stroke="#2a3020" stroke-width="4" fill="none"/>
+  <!-- Backpack visible behind -->
+  <rect x="-38" y="165" width="76" height="130" rx="6" fill="#1a2a10" opacity=".25"/>
+  <g stroke="#222a15" stroke-width=".5" fill="none" opacity=".2">
+    <line x1="-30" y1="180" x2="30" y2="180"/>
+    <line x1="-30" y1="200" x2="30" y2="200"/>
+    <line x1="-30" y1="220" x2="30" y2="220"/>
+  </g>
+  </g>
+</g>
+</svg>
+</div>
+
+<!-- L6: Front foliage -->
+<div class="layer" data-depth=".48">
+<svg viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+<g fill="#040802" opacity=".85">
+  <ellipse cx="-30" cy="860" rx="190" ry="240"/><ellipse cx="80" cy="790" rx="100" ry="200"/>
+  <path d="M60,760 L82,660 L104,760Z"/><path d="M28,790 L56,690 L84,790Z"/><path d="M100,810 L122,710 L144,810Z"/>
+  <ellipse cx="1950" cy="850" rx="200" ry="250"/><ellipse cx="1840" cy="780" rx="110" ry="210"/>
+  <path d="M1820,750 L1842,650 L1864,750Z"/><path d="M1850,780 L1878,680 L1906,780Z"/><path d="M1780,800 L1802,700 L1824,800Z"/>
+</g>
+<g stroke="#060c03" stroke-width="2" fill="none" opacity=".5">
+  <path d="M48,660 Q54,730 44,810 Q50,860 40,910"/><path d="M78,680 Q84,750 74,820 Q80,870 70,920"/><path d="M28,700 Q34,770 24,840"/>
+  <path d="M1872,670 Q1878,740 1868,810 Q1874,860 1864,910"/><path d="M1842,690 Q1848,760 1838,830 Q1844,880 1834,930"/>
+</g>
+</svg>
+</div>
+
+<!-- L7: Particles -->
+<div class="layer" data-depth=".3" style="pointer-events:none">
+<svg viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+<g opacity=".1">
+  <circle cx="200" cy="400" r="1.5" fill="#c8aa5a"><animate attributeName="cy" values="400;380;400" dur="8s" repeatCount="indefinite"/></circle>
+  <circle cx="500" cy="350" r="1" fill="#c8aa5a"><animate attributeName="cy" values="350;330;350" dur="6s" repeatCount="indefinite"/></circle>
+  <circle cx="800" cy="420" r="1.2" fill="#c8aa5a"><animate attributeName="cy" values="420;400;420" dur="7s" repeatCount="indefinite"/></circle>
+  <circle cx="1100" cy="380" r=".8" fill="#c8aa5a"><animate attributeName="cy" values="380;360;380" dur="9s" repeatCount="indefinite"/></circle>
+  <circle cx="1400" cy="410" r="1.3" fill="#c8aa5a"><animate attributeName="cy" values="410;390;410" dur="7.5s" repeatCount="indefinite"/></circle>
+  <circle cx="1700" cy="370" r="1" fill="#c8aa5a"><animate attributeName="cy" values="370;350;370" dur="8.5s" repeatCount="indefinite"/></circle>
+</g>
+</svg>
+</div>
+
+<!-- Fog -->
+<svg class="fog" viewBox="0 0 3840 1080" preserveAspectRatio="xMidYMid slice">
+<g filter="url(#fogB)" opacity=".3">
+  <ellipse cx="500" cy="620" rx="600" ry="80" fill="rgba(180,200,160,.06)"/>
+  <ellipse cx="1400" cy="650" rx="500" ry="60" fill="rgba(180,200,160,.04)"/>
+  <ellipse cx="2400" cy="600" rx="700" ry="90" fill="rgba(180,200,160,.05)"/>
+  <ellipse cx="3200" cy="630" rx="550" ry="70" fill="rgba(180,200,160,.035)"/>
+</g>
+</svg>
+
+<!-- Ambient canvas -->
+<canvas id="ambientCanvas"></canvas>
+<!-- NV overlay -->
+<div class="nv-overlay" id="nvOverlay"></div>
+<!-- Vignette -->
+<div class="vignette"></div>
+<!-- Grain -->
+<div class="grain"></div>
+<!-- Scanlines -->
+<div class="scanline"></div>
+
+<!-- TITLE -->
+<div class="title-block">
+  <p class="t-label">Ejercito Mexicano - Cuerpo de Fuerzas Especiales</p>
+  <h1>FUERZAS<br>ESPECIALES<span>Cuerpo de Fuerzas Especiales (CFE)</span></h1>
+  <div class="t-line"></div>
+  <p class="t-sub">Antes GAFE - Siempre Listos Para La Accion</p>
+</div>
+
+<!-- NV HINT -->
+<div class="nv-hint">
+  <span class="key">N</span>
+  <span class="desc">Vision nocturna</span>
+</div>
+
+<!-- HUD -->
+<div class="hud hud-tl">
+  <div class="hud-label">Status</div>
+  <div class="hud-val"><span class="num" id="hudTime">00:00:00</span></div>
+</div>
+<div class="hud hud-tr">
+  <div class="hud-label">Cursor</div>
+  <div class="hud-val">X:<span class="num" id="hudX">0.00</span> Y:<span class="num" id="hudY">0.00</span></div>
+</div>
+<div class="hud hud-br">
+  <div class="hud-label">Parallax: <span class="num">8</span> capas | <span class="num" id="hudDepth">0.35</span></div>
+</div>
+
+<!-- Click zones -->
+<div class="click-zone" id="czHead" style="left:calc(50% - 14px);top:28vh" data-info="head">
+  <div class="cz-ring"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="8"/><line x1="12" y1="16" x2="12" y2="22"/><line x1="2" y1="12" x2="8" y2="12"/><line x1="16" y1="12" x2="22" y2="12"/></svg></div>
+  <span class="cz-label">Casco + NVG</span>
+</div>
+<div class="click-zone" id="czVest" style="left:calc(50% + 5px);top:57vh" data-info="vest">
+  <div class="cz-ring"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="8"/><line x1="12" y1="16" x2="12" y2="22"/><line x1="2" y1="12" x2="8" y2="12"/><line x1="16" y1="12" x2="22" y2="12"/></svg></div>
+  <span class="cz-label">Chaleco Tactico</span>
+</div>
+<div class="click-zone" id="czWeapon" style="left:calc(50% - 135px);top:55vh" data-info="weapon">
+  <div class="cz-ring"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="8"/><line x1="12" y1="16" x2="12" y2="22"/><line x1="2" y1="12" x2="8" y2="12"/><line x1="16" y1="12" x2="22" y2="12"/></svg></div>
+  <span class="cz-label">FX-05 Xiuhcoatl</span>
+</div>
+
+<!-- Info Panel -->
+<div class="info-panel" id="infoPanel">
+  <div class="ip-close" id="ipClose">[X] Cerrar</div>
+  <div class="ip-title" id="ipTitle"></div>
+  <div class="ip-text" id="ipText"></div>
+</div>
+
+</div>
+
+<!-- CROSSHAIR -->
+<div class="crosshair" id="crosshair">
+  <div class="ch-ring"></div><div class="ch-dot"></div>
+  <div class="ch-line ch-top"></div><div class="ch-line ch-bot"></div>
+  <div class="ch-line ch-left"></div><div class="ch-line ch-right"></div>
+</div>
+
+<script>
+// PARALLAX
+const layers=document.querySelectorAll('.layer');
+let mx=0,my=0,tx=0,ty=0,cx=0,cy=0;
+document.addEventListener('mousemove',e=>{mx=(e.clientX/innerWidth-.5)*2;my=(e.clientY/innerHeight-.5)*2});
+function loop(){tx=mx;ty=my;cx+=(tx-cx)*.06;cy+=(ty-cy)*.06;layers.forEach(l=>{const d=+l.dataset.depth;l.style.transform=`translate3d(${cx*d*90}px,${cy*d*45}px,0)`});requestAnimationFrame(loop)}loop();
+document.addEventListener('touchmove',e=>{const t=e.touches[0];mx=(t.clientX/innerWidth-.5)*2;my=(t.clientY/innerHeight-.5)*2});
+if(window.DeviceOrientationEvent)window.addEventListener('deviceorientation',e=>{if(e.gamma!=null){mx=e.gamma/45;my=(e.beta-45)/45}});
+
+// CROSSHAIR
+const ch=document.getElementById('crosshair');let chX=innerWidth/2,chY=innerHeight/2,chTX=chX,chTY=chY;
+document.addEventListener('mousemove',e=>{chTX=e.clientX;chTY=e.clientY});
+(function a(){chX+=(chTX-chX)*.15;chY+=(chTY-chY)*.15;ch.style.left=chX+'px';ch.style.top=chY+'px';requestAnimationFrame(a)})();
+document.addEventListener('mousedown',()=>ch.classList.add('active'));
+document.addEventListener('mouseup',()=>ch.classList.remove('active'));
+
+// RIPPLE
+document.addEventListener('click',e=>{const r=document.createElement('div');r.className='ripple';r.style.left=e.clientX+'px';r.style.top=e.clientY+'px';document.body.appendChild(r);r.addEventListener('animationend',()=>r.remove())});
+
+// FIREFLIES
+const scene=document.getElementById('scene');const ff=[];
+for(let i=0;i<14;i++){const f=document.createElement('div');f.className='firefly';f._x=Math.random()*innerWidth;f._y=Math.random()*innerHeight;f._a=Math.random()*Math.PI*2;f._r=Math.random()*80+40;f._ox=f._x;f._oy=f._y;f.style.left=f._x+'px';f.style.top=f._y+'px';scene.appendChild(f);ff.push(f)}
+let fmx=innerWidth/2,fmy=innerHeight/2;document.addEventListener('mousemove',e=>{fmx=e.clientX;fmy=e.clientY});
+function aFF(){ff.forEach(f=>{f._a+=.008+Math.random()*.002;f._x=f._ox+Math.cos(f._a)*f._r+(fmx-innerWidth/2)*.02;f._y=f._oy+Math.sin(f._a*.7)*f._r*.6+(fmy-innerHeight/2)*.02;if(f._x<-20)f._x=innerWidth+20;if(f._x>innerWidth+20)f._x=-20;if(f._y<-20)f._y=innerHeight+20;if(f._y>innerHeight+20)f._y=-20;f.style.transform=`translate(${f._x-f._ox}px,${f._y-f._oy}px)`;const d=Math.hypot(f._x-fmx,f._y-fmy);f.style.opacity=d<150?Math.max(.1,.6-d/300):.15;f.style.background=d<100?'rgba(255,200,80,0.8)':'rgba(200,170,90,0.5)'});requestAnimationFrame(aFF)}aFF();
+
+// AMBIENT CANVAS
+const canvas=document.getElementById('ambientCanvas'),ctx=canvas.getContext('2d');
+function rc(){canvas.width=innerWidth;canvas.height=innerHeight}rc();window.addEventListener('resize',rc);
+const dust=[];for(let i=0;i<50;i++)dust.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:Math.random()*1.5+.3,vx:(Math.random()-.5)*.15,vy:-Math.random()*.25-.05,a:Math.random()*.35+.1});
+function aD(){ctx.clearRect(0,0,canvas.width,canvas.height);dust.forEach(p=>{p.x+=p.vx+(cx||0)*.3;p.y+=p.vy;if(p.y<-10){p.y=canvas.height+10;p.x=Math.random()*canvas.width}if(p.x<-10)p.x=canvas.width+10;if(p.x>canvas.width+10)p.x=-10;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(200,170,90,${p.a})`;ctx.fill()});requestAnimationFrame(aD)}aD();
+
+// HUD
+function uc(){const n=new Date();document.getElementById('hudTime').textContent=n.toTimeString().slice(0,8);document.getElementById('hudX').textContent=(mx/2+.5).toFixed(2);document.getElementById('hudY').textContent=(my/2+.5).toFixed(2);document.getElementById('hudDepth').textContent=(.35+(cx||0)*.1).toFixed(2)}setInterval(uc,1000);uc();
+
+// CLICK ZONES
+const infoData={
+  head:{title:'CASCO BALISTICO CON NVG',text:'Casco balistico Ops-Core FAST con montaje Wilcox para gafas de vision nocturna AN/PVS-14. Sistema de comunicacion Peltor ComTac con microfono boom. Camuflaje tipo selva tropical mexicana. Correa de retention en barbilla.'},
+  vest:{title:'CHALECO TACTICO CFE',text:'Chaleco tipo Plate Carrier del CFE con sistema MOLLE. 3 cargadores STANAG 5.56mm, radio AN/PRC-152A, IFAK de primeros auxilios, parche de la Bandera Nacional de Mexico e insignia del Cuerpo de Fuerzas Especiales. Sistema de hidratacion CamelBak integrado.'},
+  weapon:{title:'FX-05 XIUHCOATL',text:'Fusil de asalto calibre 5.56x45mm NATO, modelo FX-05 Xiuhcoatl, fabricado por Sedena. Equipado con mira Aimpoint CompM4, laser AN/PEQ-15 IR, grip vertical Magpul y cargador de 30 tiros. Armamento standard del CFE.'}
+};
+const ip=document.getElementById('infoPanel'),ipT=document.getElementById('ipTitle'),ipX=document.getElementById('ipText');let az=null;
+document.querySelectorAll('.click-zone').forEach(z=>{z.addEventListener('click',e=>{e.stopPropagation();const k=z.dataset.info;if(az===k){cIP();return}const d=infoData[k];ipT.textContent=d.title;ipX.textContent=d.text;ip.classList.add('show');const r=z.getBoundingClientRect();ip.style.left=(r.right+15)+'px';ip.style.top=(r.top-20)+'px';if(r.right+320>innerWidth)ip.style.left=(r.left-320)+'px';if(r.top+200>innerHeight)ip.style.top=(innerHeight-220)+'px';az=k})});
+document.getElementById('ipClose').addEventListener('click',e=>{e.stopPropagation();cIP()});
+document.addEventListener('click',e=>{if(!e.target.closest('.click-zone')&&!e.target.closest('.info-panel'))cIP()});
+function cIP(){ip.classList.remove('show');az=null}
+
+// NV TOGGLE
+let nv=false;document.addEventListener('keydown',e=>{if(e.key==='n'||e.key==='N'){nv=!nv;document.getElementById('nvOverlay').classList.toggle('active',nv);document.querySelector('.scene').style.filter=nv?'hue-rotate(60deg) saturate(1.5) brightness(1.1)':'none'}});
+
+// WEAPON SWAY
+const wg=document.getElementById('weaponGroup');(function sw(){const t=performance.now()*.001;if(wg){const s=Math.sin(t*1.2)*1.2,sy=Math.sin(t*.8)*.6;wg.setAttribute('transform',`translate(-66,218) rotate(${s},0,25) translate(0,${sy})`)}requestAnimationFrame(sw)})();
+
+// EYE BLINK
+const eyeLO=document.getElementById('eyeLO'),eyeRO=document.getElementById('eyeRO'),eyeLI=document.getElementById('eyeLI'),eyeRI=document.getElementById('eyeRI');
+function setEyes(ryO,ryI){if(!eyeLO)return;eyeLO.setAttribute('ry',ryO);eyeRO.setAttribute('ry',ryO);eyeLI.setAttribute('ry',ryI);eyeRI.setAttribute('ry',ryI)}
+function blink(){
+  if(!eyeLO)return;
+  let step=0;const steps=8,dur=100,stepT=dur/steps;
+  const close=()=>{step++;const p=step/steps;setEyes(5*(1-p),3.5*(1-p));if(step<steps)setTimeout(close,stepT);else setTimeout(open,30)};
+  const open=()=>{let s=0;const doStep=()=>{s++;const p=s/steps;setEyes(5*p,3.5*p);if(s<steps)setTimeout(doStep,stepT);else setTimeout(blink,3500+Math.random()*4000)};doStep()};
+  setTimeout(close,Math.random()*500);
+}
+setTimeout(blink,2000+Math.random()*2000);
+
+// STARS TWINKLE
+document.querySelectorAll('.stars circle').forEach(s=>{s.style.animation=`twinkle ${2+Math.random()*4}s ease-in-out ${Math.random()*3}s infinite alternate`});
+const ts=document.createElement('style');ts.textContent='@keyframes twinkle{0%{opacity:.25}100%{opacity:.75}}';document.head.appendChild(ts);
+</script>
+</body>
+</html>

@@ -1,0 +1,461 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sword Art Online</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- Scanline Overlay -->
+    <div class="scanlines"></div>
+
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading">
+        <div class="loading-particles" id="loadingParticles"></div>
+        <div class="loading-scan"></div>
+        <div class="loading-inner">
+            <div class="loading-logo">
+                <svg viewBox="0 0 500 70" class="logo-svg">
+                    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" class="logo-text" data-text="SWORD ART ONLINE">SWORD ART ONLINE</text>
+                </svg>
+                <p class="loading-jp">ソードアート・オンライン</p>
+            </div>
+            <div class="loading-bars">
+                <div class="loading-bar-row">
+                    <span class="lb-label">HP</span>
+                    <div class="lb-track"><div class="lb-fill hp" id="loadingHp"></div></div>
+                    <span class="lb-val" id="loadingHpVal">0/100</span>
+                </div>
+                <div class="loading-bar-row">
+                    <span class="lb-label">MP</span>
+                    <div class="lb-track"><div class="lb-fill mp" id="loadingMp"></div></div>
+                    <span class="lb-val" id="loadingMpVal">0/80</span>
+                </div>
+            </div>
+            <div class="loading-floor">
+                <span class="lf-label">FLOOR</span>
+                <span class="lf-val" id="loadingFloor">1</span>
+                <span class="lf-sep">/</span>
+                <span class="lf-max">100</span>
+            </div>
+            <div class="loading-bar-wrap">
+                <div class="loading-bar" id="loadingBar"></div>
+            </div>
+            <p class="loading-msg" id="loadingMsg">Inicializando NERvGear...</p>
+            <button class="loading-enter" id="loadingEnter" style="display:none;">
+                <span class="le-bracket">[</span>
+                <span class="le-text">LINK START</span>
+                <span class="le-bracket">]</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Custom Cursor -->
+    <div class="cursor" id="cursor"></div>
+    <div class="cursor-dot" id="cursorDot"></div>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="header-inner">
+            <div class="header-logo cursor-scale">
+                <h1 class="brand" id="brandLogo">SAO</h1>
+                <span class="brand-sub">Sword Art Online</span>
+            </div>
+            <nav class="header-menu">
+                <ul>
+                    <li class="active cursor-scale" data-slide="0"><a href="javascript:void(0);">kirito</a></li>
+                    <li class="cursor-scale" data-slide="1"><a href="javascript:void(0);">asuna</a></li>
+                    <li class="cursor-scale" data-slide="2"><a href="javascript:void(0);">sinon</a></li>
+                    <li class="cursor-scale" data-slide="3"><a href="javascript:void(0);">leafa</a></li>
+                    <li class="cursor-scale" data-slide="4"><a href="javascript:void(0);">heathcliff</a></li>
+                </ul>
+            </nav>
+            <div class="header-right">
+                <div class="header-status cursor-scale">
+                    <span class="status-dot"></span>
+                    <span class="status-text">ONLINE</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Banner Section -->
+    <section class="banner" id="banner">
+        <!-- Rain Effect -->
+        <div class="rain-container" id="rainContainer"></div>
+
+        <!-- Slides Container -->
+        <div class="slides-wrapper" id="slidesWrapper">
+            <!-- Slide 1: Kirito -->
+            <div class="slide slide-blue active" data-index="0">
+                <div class="slide-bg" style="background-image: url('https://images.alphacoders.com/132/1320841.jpeg')"></div>
+                <div class="slide-content">
+                    <div class="slide-left">
+                        <div class="vertical-label">
+                            <span class="vl-text">AINCRAD PISO 74</span>
+                            <div class="vl-line"></div>
+                            <svg class="vl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                        </div>
+                    </div>
+                    <div class="slide-image">
+                        <div class="character-img" data-depth="0.15">
+                            <img src="https://static.wikia.nocookie.net/swordartonline/images/5/56/Afasys_Copy_of_Kirito_FB_DLC2.png/revision/latest?cb=20180703234708" alt="Kirito" />
+                        </div>
+                    </div>
+                    <div class="slide-info">
+                        <h5 class="slide-role">Espadachin Negro</h5>
+                        <h1 class="slide-name">Kirito</h1>
+                        <div class="info-box">
+                            <div class="info-box-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.5 17.5L3 6V3h3l11.5 11.5M13 19l6-6M15 21l6-6"/></svg>
+                            </div>
+                            <div class="info-box-text">
+                                <h6>Duelista</h6>
+                                <p>El jugador beta mas legendario de SAO. Conocido como Beater, domina el arte del Dual Blades y ha superado todos los desafios de Aincrad.</p>
+                            </div>
+                        </div>
+                        <div class="skills-row">
+                            <div class="skill-icon cursor-scale">
+                                <div class="skill-img">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.5 17.5L3 6V3h3l11.5 11.5M13 19l6-6M15 21l6-6"/></svg>
+                                </div>
+                                <span>Starburst Stream</span>
+                            </div>
+                            <div class="skill-icon cursor-scale">
+                                <div class="skill-img">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+                                </div>
+                                <span>Vertical Arc</span>
+                            </div>
+                            <div class="skill-icon cursor-scale">
+                                <div class="skill-img">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                </div>
+                                <span>Sonic Leap</span>
+                            </div>
+                            <div class="skill-icon cursor-scale">
+                                <div class="skill-img">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                </div>
+                                <span>Shield Image</span>
+                            </div>
+                        </div>
+                        <div class="cta-btn-main cursor-scale">
+                            <a href="#" class="cta-btn" data-char="kirito">VER PERFIL</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 2: Asuna -->
+            <div class="slide slide-purple" data-index="1">
+                <div class="slide-bg" style="background-image: url('https://images.alphacoders.com/131/1319498.jpeg')"></div>
+                <div class="slide-content">
+                    <div class="slide-left">
+                        <div class="vertical-label">
+                            <span class="vl-text">KNIGHTS OF BLOOD</span>
+                            <div class="vl-line"></div>
+                            <svg class="vl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                        </div>
+                    </div>
+                    <div class="slide-image">
+                        <div class="character-img" data-depth="0.15">
+                            <img src="https://static.wikia.nocookie.net/swordartonline/images/5/5a/Afasys_Copy_of_Asuna_FB_DLC2.png/revision/latest?cb=20180703234709" alt="Asuna" />
+                        </div>
+                    </div>
+                    <div class="slide-info">
+                        <h5 class="slide-role">Titania</h5>
+                        <h1 class="slide-name">Asuna</h1>
+                        <div class="info-box">
+                            <div class="info-box-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.5 17.5L3 6V3h3l11.5 11.5M13 19l6-6M15 21l6-6"/></svg>
+                            </div>
+                            <div class="info-box-text">
+                                <h6>Vicecomandante</h6>
+                                <p>La segunda jugadora mas rapida de SAO. Vicecomandante de los Knights of Blood, experta en rapida y cocina.</p>
+                            </div>
+                        </div>
+                        <div class="skills-row">
+                            <div class="skill-icon cursor-scale">
+                                <div class="skill-img">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.5 17.5L3 6V3h3l11.5 11.5M13 19l6-6M15 21l6-6"/></svg>
+                                </div>
+                                <span>Starlight Stream</span>
+                            </div>
+                            <div class="skill-icon cursor-scale">
+                                <div class="skill-img">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+                                </div>
+                                <span>Switchario</span>
+                            </div>
+                            <div class="skill-icon cursor-scale">
+                                <div class="skill-img">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                </div>
+                                <span>Shooting Star</span>
+                            </div>
+                            <div class="skill-icon cursor-scale">
+                                <div class="skill-img">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                </div>
+                                <span>Healing Arc</span>
+                            </div>
+                        </div>
+                        <div class="cta-btn-main cursor-scale">
+                            <a href="#" class="cta-btn" data-char="asuna">VER PERFIL</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 3: Sinon -->
+            <div class="slide slide-orange" data-index="2">
+                <div class="slide-bg" style="background-image: url('https://images.alphacoders.com/132/1320842.jpeg')"></div>
+                <div class="slide-content">
+                    <div class="slide-left">
+                        <div class="vertical-label">
+                            <span class="vl-text">GUN GALE ONLINE</span>
+                            <div class="vl-line"></div>
+                            <svg class="vl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                        </div>
+                    </div>
+                    <div class="slide-image">
+                        <div class="character-img" data-depth="0.15">
+                            <img src="https://static.wikia.nocookie.net/swordartonline/images/8/85/Abecs_Artworks_art_book_GGO_Sinon_concept.png/revision/latest?cb=20170531084440" alt="Sinon" />
+                        </div>
+                    </div>
+                    <div class="slide-info">
+                        <h5 class="slide-role">Francotiradora</h5>
+                        <h1 class="slide-name">Sinon</h1>
+                        <div class="info-box">
+                            <div class="info-box-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+                            </div>
+                            <div class="info-box-text">
+                                <h6>Sniper Elite</h6>
+                                <p>La francotiradora mas temida de Gun Gale Online. Su precision con el Hecate II es legendaria en el campo de batalla.</p>
+                            </div>
+                        </div>
+                        <div class="skills-row">
+                            <div class="skill-icon cursor-scale">
+                                <div class="skill-img">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+                                </div>
+                                <span>Perfect Shot</span>
+                            </div>
+                            <div class="skill-icon cursor-scale">
+                                <div class="skill-img">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                </div>
+                                <span>Hawk Eye</span>
+                            </div>
+                            <div class="skill-icon cursor-scale">
+                                <div class="skill-img">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                </div>
+                                <span>Incendiary</span>
+                            </div>
+                            <div class="skill-icon cursor-scale">
+                                <div class="skill-img">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                </div>
+                                <span>Conceal</span>
+                            </div>
+                        </div>
+                        <div class="cta-btn-main cursor-scale">
+                            <a href="#" class="cta-btn" data-char="sinon">VER PERFIL</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 4: Leafa -->
+            <div class="slide slide-green" data-index="3">
+                <div class="slide-bg" style="background-image: url('https://images.alphacoders.com/132/1320843.jpeg')"></div>
+                <div class="slide-content">
+                    <div class="slide-left">
+                        <div class="vertical-label">
+                            <span class="vl-text">ALFHEIM ONLINE</span>
+                            <div class="vl-line"></div>
+                            <svg class="vl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                        </div>
+                    </div>
+                    <div class="slide-image">
+                        <div class="character-img" data-depth="0.15">
+                            <img src="https://1.bp.blogspot.com/-671iMsrC0tQ/XYswYgtXLkI/AAAAAAAA2Lg/_HEHTS0r0NcD9MaOFV8i26jrF_WMBtAtgCLcBGAsYHQ/s1600/Sword+Art+Online+Leafa+Cute+Cooking+Menu+Render.png" alt="Leafa" />
+                        </div>
+                    </div>
+                    <div class="slide-info">
+                        <h5 class="slide-role">Espadachina Sylph</h5>
+                        <h1 class="slide-name">Leafa</h1>
+                        <div class="info-box">
+                            <div class="info-box-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                            </div>
+                            <div class="info-box-text">
+                                <h6>Sylph Warrior</h6>
+                                <p>Hermana menor de Kirito. Experta espadachina en ALfheim Online con habilidades de magia viento y vuelo.</p>
+                            </div>
+                        </div>
+                        <div class="skills-row">
+                            <div class="skill-icon cursor-scale">
+                                <div class="skill-img">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.5 17.5L3 6V3h3l11.5 11.5M13 19l6-6M15 21l6-6"/></svg>
+                                </div>
+                                <span>Wind Saber</span>
+                            </div>
+                            <div class="skill-icon cursor-scale">
+                                <div class="skill-img">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+                                </div>
+                                <span>Aerial Leap</span>
+                            </div>
+                            <div class="skill-icon cursor-scale">
+                                <div class="skill-img">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                </div>
+                                <span>Wind Blade</span>
+                            </div>
+                            <div class="skill-icon cursor-scale">
+                                <div class="skill-img">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                </div>
+                                <span>Healing Light</span>
+                            </div>
+                        </div>
+                        <div class="cta-btn-main cursor-scale">
+                            <a href="#" class="cta-btn" data-char="leafa">VER PERFIL</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 5: Heathcliff -->
+            <div class="slide slide-gold" data-index="4">
+                <div class="slide-bg" style="background-image: url('https://images.alphacoders.com/132/1320844.jpeg')"></div>
+                <div class="slide-content">
+                    <div class="slide-left">
+                        <div class="vertical-label">
+                            <span class="vl-text">KNIGHTS OF BLOOD</span>
+                            <div class="vl-line"></div>
+                            <svg class="vl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                        </div>
+                    </div>
+                    <div class="slide-image">
+                        <div class="character-img" data-depth="0.15">
+                            <img src="https://static.wikia.nocookie.net/gameideas/images/8/8d/Heathcliff.png/revision/latest?cb=20180219040950" alt="Heathcliff" />
+                        </div>
+                    </div>
+                    <div class="slide-info">
+                        <h5 class="slide-role">Comandante</h5>
+                        <h1 class="slide-name">Heathcliff</h1>
+                        <div class="info-box">
+                            <div class="info-box-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            </div>
+                            <div class="info-box-text">
+                                <h6>Leader of KoB</h6>
+                                <p>El comandante de los Knights of Blood. Su verdadera identidad es la del creador de Sword Art Online.</p>
+                            </div>
+                        </div>
+                        <div class="skills-row">
+                            <div class="skill-icon cursor-scale">
+                                <div class="skill-img">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.5 17.5L3 6V3h3l11.5 11.5M13 19l6-6M15 21l6-6"/></svg>
+                                </div>
+                                <span>Liberator</span>
+                            </div>
+                            <div class="skill-icon cursor-scale">
+                                <div class="skill-img">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+                                </div>
+                                <span>Invincible</span>
+                            </div>
+                            <div class="skill-icon cursor-scale">
+                                <div class="skill-img">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                </div>
+                                <span>Smite</span>
+                            </div>
+                            <div class="skill-icon cursor-scale">
+                                <div class="skill-img">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                </div>
+                                <span>Fortress</span>
+                            </div>
+                        </div>
+                        <div class="cta-btn-main cursor-scale">
+                            <a href="#" class="cta-btn" data-char="heathcliff">VER PERFIL</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Navigation -->
+        <div class="right-nav" id="rightNav">
+            <div class="right-nav-inner">
+                <div class="nav-dot active slide-blue cursor-scale" data-index="0">
+                    <img src="https://static.wikia.nocookie.net/swordartonline/images/5/56/Afasys_Copy_of_Kirito_FB_DLC2.png/revision/latest/smart/width/64/height/64?cb=20180703234708" alt="Kirito" />
+                </div>
+                <div class="nav-dot slide-purple cursor-scale" data-index="1">
+                    <img src="https://static.wikia.nocookie.net/swordartonline/images/5/5a/Afasys_Copy_of_Asuna_FB_DLC2.png/revision/latest/smart/width/64/height/64?cb=20180703234709" alt="Asuna" />
+                </div>
+                <div class="nav-dot slide-orange cursor-scale" data-index="2">
+                    <img src="https://static.wikia.nocookie.net/swordartonline/images/8/85/Abecs_Artworks_art_book_GGO_Sinon_concept.png/revision/latest/smart/width/64/height/64?cb=20170531084440" alt="Sinon" />
+                </div>
+                <div class="nav-dot slide-green cursor-scale" data-index="3">
+                    <img src="https://1.bp.blogspot.com/-671iMsrC0tQ/XYswYgtXLkI/AAAAAAAA2Lg/_HEHTS0r0NcD9MaOFV8i26jrF_WMBtAtgCLcBGAsYHQ/s1600/Sword+Art+Online+Leafa+Cute+Cooking+Menu+Render.png" alt="Leafa" />
+                </div>
+                <div class="nav-dot slide-gold cursor-scale" data-index="4">
+                    <img src="https://static.wikia.nocookie.net/gameideas/images/8/8d/Heathcliff.png/revision/latest/smart/width/64/height/64?cb=20180219040950" alt="Heathcliff" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide Counter -->
+        <div class="slide-counter" id="slideCounter">
+            <span class="sc-current" id="scCurrent">01</span>
+            <span class="sc-sep">/</span>
+            <span class="sc-total">05</span>
+        </div>
+
+        <!-- Bottom Controls -->
+        <div class="bottom-controls" id="bottomControls">
+            <div class="bottom-progress">
+                <div class="progress-fill" id="progressFill"></div>
+                <div class="progress-timer" id="progressTimer"></div>
+            </div>
+            <button class="pause-btn cursor-scale" id="pauseBtn" title="Pausar/Reanudar">
+                <svg class="pause-icon" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><polygon points="5,3 19,12 5,21"/></svg>
+            </button>
+        </div>
+    </section>
+
+    <!-- Character Modal -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal-box">
+            <button class="modal-x cursor-scale" id="modalX">&times;</button>
+            <div class="modal-content">
+                <div class="modal-header" id="modalHeader">
+                    <div class="modal-avatar" id="modalAvatar"></div>
+                    <div class="modal-title">
+                        <h2 class="modal-name" id="modalName"></h2>
+                        <p class="modal-role" id="modalRole"></p>
+                    </div>
+                </div>
+                <div class="modal-stats" id="modalStats"></div>
+                <div class="modal-skills" id="modalSkills"></div>
+                <p class="modal-desc" id="modalDesc"></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

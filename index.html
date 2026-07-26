@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="es" data-skin="default">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Evodio — Ingeniero en Sistemas Computacionales</title>
+<meta name="description" content="Portafolio de Evodio, Ingeniero en Sistemas Computacionales. Desarrollo web fullstack." />
+
+<!-- ===== CDNs: tipografías, iconos y animaciones ===== -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;600;700;800;900&family=Source+Sans+Pro:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
+<!-- Font Awesome (iconos vectoriales nítidos) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<!-- Tailwind (utilidades de acabado, sin romper el layout) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+/* ===================== VARIABLES / SKINS ===================== */
+:root, [data-skin="default"]{            /* AZUL */
+  --accent1:#9be7ff; --accent2:#38bdf8; --accent3:#0a2a4a;
+  --accent:#38bdf8;            /* acento único y vibrante */
+  --accent-ink:#04121f;
+  --glow:rgba(56,189,248,.35);
+  --border1-c:rgba(255,255,255,.1);
+  --border2-c:rgba(255,255,255,.25);
+  --dbckg0:#0a0a0a; --dbckg1:#141414;
+  --tbckg0:rgba(5,5,5,.5); --tbckg1:rgba(50,50,50,.5);
+  --tbckg2:rgba(25,25,25,.5); --tbckg3:rgba(15,15,15,.5);
+  --title:#fff; --subtitle:#ccc; --subtitle2:#aaa; --text:#777; --text2:#999;
+  --scroll:rgba(255,255,255,.12);
+}
+[data-skin="berenice"]{                  /* ROSA */
+  --accent1:#ffd0e6; --accent2:#ff5fa2; --accent3:#4a1330;
+  --accent:#ff5fa2; --accent-ink:#2a0a18; --glow:rgba(255,95,162,.35);
+}
+[data-skin="eira"]{                      /* NARANJA */
+  --accent1:#ffd9a8; --accent2:#ff7a3d; --accent3:#4a1f0a;
+  --accent:#ff7a3d; --accent-ink:#241004; --glow:rgba(255,122,61,.35);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;scroll-behavior:smooth}
+body{
+  font-family:'Source Sans Pro',sans-serif;font-size:14px!important;
+  overflow:hidden;padding:1vw;
+  background:linear-gradient(85deg,var(--accent3) 0%,var(--accent3) 50%,var(--dbckg0) 50.1%);
+  transition:ease .5s;
+}
+a{color:var(--accent2);text-decoration:none!important;cursor:crosshair}
+a:hover{color:var(--accent1);text-decoration:none!important}
+::selection{background:var(--accent2);color:#fff}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-thumb{background:var(--scroll)}
+::-webkit-scrollbar-track{background:transparent}
+/* scrollbar gruesa y con glow dentro del contenedor (estilo original) */
+section#container::-webkit-scrollbar{width:18px;background:transparent}
+section#container::-webkit-scrollbar-thumb{box-shadow:inset 0 0 10px 10px var(--accent);border:solid 9px transparent;background-clip:padding-box;border-radius:999px}
+section#container::-webkit-scrollbar-track{box-shadow:inset 0 0 10px 10px transparent;border:solid 9px transparent;background-clip:padding-box;border-radius:999px}
+
+/* ===== Contenedor redondeado con scroll interno (firma del pen) ===== */
+section#container{
+  background-color:#555;
+  background-image:url("https://2img.net/i.imgur.com/dKkXhF4.jpg");
+  background-size:cover;background-position:center;background-attachment:fixed;background-blend-mode:multiply;
+  position:relative;isolation:isolate;overflow-y:auto;
+  height:calc(100vh - 2vw);width:calc(100vw - 2vw);
+  border-radius:20px;color:var(--text)!important;transition:ease .5s;
+}
+@media(max-width:700px){ body{padding:0} section#container{width:100vw;height:100vh;border-radius:0} }
+
+/* textura de ruido sutil */
+section#container::before{
+  content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.04;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ===================== HERO / HEADER ===================== */
+header{height:100vh;overflow:hidden;background:transparent;position:relative;isolation:isolate}
+header:before{content:'';position:absolute;inset:0;opacity:.2;background:linear-gradient(85deg,transparent 0%,transparent 50.1%,var(--accent3) 50.2%)}
+#logosvg{mix-blend-mode:difference;height:120vh;width:max(120vw,900px);position:absolute;margin-top:20vh;z-index:0;pointer-events:none}
+#logosvg *{transform-box:fill-box;transform-origin:center center}
+/* Avatares movidos a la sección "Sobre mí" */
+header a{
+  font:max(10vw,60px) 'Anton';letter-spacing:max(-.5vw,-5px);
+  position:absolute;margin-top:15vh;transform:skewX(-10deg);margin-left:max(4.5vw,25px);
+  color:var(--title)!important;display:block;
+  text-shadow:5px 5px var(--dbckg0),10px 10px var(--accent2);
+}
+header a span{
+  position:absolute;background:var(--dbckg1);font:11px 'Archivo';font-weight:700;letter-spacing:2px;
+  text-indent:2px;transform:skewX(10deg);text-shadow:none;width:calc(100% + 2vw);text-align:center;
+  padding:10px;margin-inline:-1vw;box-sizing:border-box;text-transform:uppercase;
+}
+header h{position:absolute;font:9vw 'Anton';line-height:7vw;letter-spacing:-.5vw;white-space:pre;color:var(--title);opacity:.05;display:block;z-index:-3}
+header h.borders{color:transparent;-webkit-text-stroke:.25px var(--title);margin:-.35vw 0 0 .35vw;opacity:.2}
+
+/* Hero: se conserva la animación original (degradado rotatorio del logo).
+   Para que se aprecie mejor, solo se realza la visibilidad del logo con un glow de acento. */
+#logosvg{filter:drop-shadow(0 0 26px var(--glow))}
+
+/* Selector de skin en el hero + indicador de scroll */
+#skinselector-hero{position:absolute;left:max(4.5vw,25px);bottom:22px;z-index:50;display:flex;gap:8px}
+.scroll-cue{position:fixed;left:50%;bottom:42px;transform:translateX(-50%);display:flex;flex-direction:column;
+  align-items:center;gap:5px;padding:7px 14px;border:1px solid var(--border1-c);border-radius:99px;
+  background:rgba(10,10,10,.35);color:var(--subtitle2);font:10px 'Archivo';font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;z-index:99999;box-shadow:none;opacity:.75;animation:cueBounce 2s ease-in-out infinite;transition:opacity .4s}
+.scroll-cue:hover{opacity:1}
+.scroll-cue .cue-label{color:var(--subtitle2)}
+.scroll-cue .cue-arrow{width:9px;height:9px;border-right:1.5px solid var(--accent2);border-bottom:1.5px solid var(--accent2);
+  transform:rotate(45deg);animation:cueArrow 2s ease-in-out infinite}
+.scroll-cue.hide{animation:none;opacity:0;pointer-events:none}
+@keyframes cueBounce{0%,100%{transform:translate(-50%,0);opacity:.5}50%{transform:translate(-50%,7px);opacity:.85}}
+@keyframes cueArrow{0%,100%{transform:rotate(45deg) translate(0,0)}50%{transform:rotate(45deg) translate(3px,3px)}}
+
+/* Avatares en la sección "Sobre mí" */
+.sobre-avatar{float:right;width:max(20vw,190px);margin:0 0 14px 26px}
+.sobre-avatar img{width:100%;display:block;border-radius:18px;background:var(--tbckg1);filter:drop-shadow(0 12px 28px var(--glow))}
+.sobre-avatar img.char-eira,.sobre-avatar img.char-berenice{display:none}
+[data-skin="berenice"] .sobre-avatar img.char-discboom,[data-skin="berenice"] .sobre-avatar img.char-eira{display:none}
+[data-skin="berenice"] .sobre-avatar img.char-berenice{display:block}
+[data-skin="eira"] .sobre-avatar img.char-discboom,[data-skin="eira"] .sobre-avatar img.char-berenice{display:none}
+[data-skin="eira"] .sobre-avatar img.char-eira{display:block}
+
+/* ===================== NAV ===================== */
+nav{position:sticky;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;
+  z-index:998;background:var(--dbckg0);padding:10px 30px 10px 10px;overflow:hidden}
+.flex{display:flex;justify-content:center;align-items:center}
+.navmain{display:flex;gap:10px;align-items:center}
+a#menu{background:var(--dbckg1);margin:-30px 20px -30px -40px;height:92px;width:92px;border-radius:100%;
+  font-size:25px;display:grid;place-items:center;padding-left:20px;outline:2px solid var(--dbckg1);outline-offset:3px;color:var(--accent)}
+.navtree{font-size:0}
+.navtree a{font-size:12px;font-family:'Archivo';font-weight:700;text-transform:uppercase;color:var(--subtitle2);
+  padding:5px 10px;border:1px solid var(--border2-c);background:var(--dbckg1);margin-left:10px}
+.navtree a:hover{color:var(--subtitle)}
+.navtree a:last-of-type:not(:only-child){color:var(--accent2)}
+@media(max-width:700px){ .navtree{display:none} nav{padding:6px} a#menu{height:64px;width:64px;margin:-20px 10px -20px -20px} }
+
+/* ===================== SKIN SELECTOR (integrado en el navbar) ===================== */
+#skinselector{display:flex;gap:8px;align-items:center}
+.skin-button{border-radius:50%;width:38px;height:38px;
+  font-size:16px;cursor:crosshair;display:grid;place-items:center;color:#fff;transition:.25s;
+  border:2px solid rgba(255,255,255,.5);box-shadow:0 4px 14px var(--glow)}
+.skin-button:hover{transform:scale(1.15)}
+.skin-button[data-skin="default"]{background:linear-gradient(135deg,#38bdf8,#9be7ff)}
+.skin-button[data-skin="berenice"]{background:linear-gradient(135deg,#ff5fa2,#ffd0e6)}
+.skin-button[data-skin="eira"]{background:linear-gradient(135deg,#ff7a3d,#ffd9a8)}
+.skin-button em{color:#04121f}
+@media(max-width:700px){ .skin-button{width:32px;height:32px} }
+
+/* ===================== WRAP / TABLÓN ===================== */
+#wrap{background:var(--tbckg2);border:1px solid var(--border1-c);backdrop-filter:blur(10px);
+  margin:5vw auto;width:60vw;box-sizing:border-box;background-clip:padding-box}
+@media(max-width:1100px){ #wrap{width:86vw} }
+@media(max-width:700px){ #wrap{width:94vw;margin:8vw auto} }
+#tablon{border-bottom:1px solid var(--border1-c);height:400px;position:relative;isolation:isolate}
+.tbconts{background-color:var(--dbckg1);width:100%;height:100%;position:absolute;inset:0;overflow:hidden}
+.tbconts>span{position:absolute;z-index:-1;background-image:url("https://2img.net/i.imgur.com/rrpMJ6Q.png");
+  background-repeat:repeat;inset:0;width:100%;height:100%;mix-blend-mode:soft-light;opacity:.2;background-size:3px}
+.tbcont{position:absolute;inset:0;width:100%;height:100%;transition:ease 1s;box-sizing:border-box;padding:60px}
+@media(max-width:700px){ .tbcont{padding:30px} #tablon{height:460px} }
+#tbcont1{left:-100%}
+.tbcont1 #tbcont1{left:0}
+#tbcont2{top:-100%}
+.tbcont2 #tbcont2{top:0}
+#tbcont3{top:100%}
+.tbcont3 #tbcont3{top:0}
+.tbtabs{position:absolute;right:10px;bottom:10px;display:flex;gap:10px;z-index:4}
+.tbtab{width:15px;height:15px;box-sizing:border-box;border:1px solid var(--border2-c);cursor:crosshair}
+.tbtab.active{border-color:transparent;background-image:url("https://2img.net/i.imgur.com/ku9FBuS.png");
+  background-repeat:repeat;background-position:center;opacity:.5}
+#tbcont1 h,.tbtit{background:var(--dbckg1);transform:skewX(-10deg);font:20px 'Archivo';font-weight:700;
+  display:block;width:fit-content;padding:5px 10px;color:var(--title);position:relative;overflow:hidden;text-transform:uppercase}
+#tbcont1 h:before{content:'';width:50%;position:absolute;inset:-5px;right:unset;background:var(--accent3);mix-blend-mode:multiply}
+#tbcont1 p{width:25%;text-align:justify;overflow:auto;margin:20px 0 0;height:calc(100% - 44px);font-size:13px;line-height:16px;padding-right:5px}
+#tbcont1 p b{color:var(--subtitle2)}
+#tbcont2{display:flex;gap:25px}
+#tbcont2 .card{background:var(--tbckg3);border:1px solid var(--border1-c);padding:24px;flex:1}
+@media(max-width:700px){ #tbcont1 p{width:100%;height:auto} #tbcont2{flex-direction:column} }
+#tbcont3 h{font:22px 'Archivo';font-weight:700;color:var(--title);margin-bottom:10px}
+#tbcont3 ul{list-style:none;display:flex;flex-wrap:wrap;gap:10px;padding-left:18px}
+#tbcont3 ul li{font-family:'Archivo';font-weight:700;font-size:13px;color:var(--subtitle2);position:relative}
+#tbcont3 ul li:before{content:'â–¹';position:absolute;left:-18px;color:var(--accent)}
+
+/* ===================== PROYECTOS (filas de foro) ===================== */
+#work{padding:max(3vw,40px)}
+.forabg .header{background-image:url("https://2img.net/i.imgur.com/wDollmE.png");background-size:cover;background-position:center;
+  border:1px solid var(--border1-c);background-clip:padding-box;height:100px;margin-bottom:20px;display:flex}
+.forabg .header h2{width:100%;height:100%;text-align:center;position:relative;color:transparent!important;
+  font:20px 'Archivo';text-transform:uppercase;font-weight:700;margin:0;display:flex;align-items:center;justify-content:center}
+.forabg .header h2 span{display:block;transform:skewX(-10deg);color:#fff;text-shadow:0 0 26px var(--glow),0 2px 4px rgba(0,0,0,.96),0 6px 22px rgba(0,0,0,1)}
+.frow{overflow:hidden;box-sizing:border-box;border:1px solid var(--border1-c);position:relative;isolation:isolate;background:var(--tbckg3);margin-bottom:20px}
+.frow:not(#f1){display:grid;grid-template-columns:190px 1fr;
+  grid-template-rows:auto auto auto;grid-template-areas:'preview nombre' 'preview desc' 'preview data' 'preview last';gap:6px 16px;align-items:start;padding:12px}
+.frow:not(#f1) .fpreview{grid-area:preview;width:190px;height:128px;position:relative;overflow:hidden;border:1px solid var(--border1-c);border-radius:10px;background:#fff}
+.frow:not(#f1) .fpreview .pframe{position:absolute;top:0;left:0;width:1280px;height:800px;border:0;transform-origin:top left;pointer-events:none}
+.frow:not(#f1) .forumtitle{grid-area:nombre;display:flex;justify-content:flex-start;align-items:center;font:15px 'Archivo';text-transform:uppercase;font-weight:700;color:var(--subtitle)}
+.frow:not(#f1) .frdesc{grid-area:desc;border-top:1px solid var(--border1-c);padding-top:8px}
+.frow:not(#f1) .frdesc .desc{overflow:auto;padding-right:5px;text-align:justify;line-height:19px;font-size:13px}
+.frow:not(#f1) .frdata{grid-area:data;display:flex;justify-content:flex-start;align-items:center}
+.frow:not(#f1) .frdata span{align-self:stretch;display:flex;justify-content:center;align-items:center;width:100%;box-sizing:border-box;font-size:11px;text-transform:uppercase;font-weight:700;gap:6px}
+.frow:not(#f1) .frdata b{color:var(--subtitle2)}
+.frow:not(#f1) .frlast{grid-area:last;display:flex;justify-content:flex-start;align-items:center;gap:16px}
+.frow:not(#f1) .frlast .frbtn{margin-left:auto}
+@media(max-width:700px){
+  .frow:not(#f1){grid-template-columns:1fr;grid-template-rows:auto auto auto auto auto;grid-template-areas:'preview' 'nombre' 'desc' 'data' 'last'}
+  .frow:not(#f1) .fpreview{width:100%;height:170px}
+}
+/* proyecto destacado (f1) con preview iframe */
+.frbanner{position:absolute;inset:0;width:100%;height:100%;z-index:-2;overflow:hidden}
+.frbanner .pframe{position:absolute;top:0;left:0;width:1280px;height:800px;border:0;transform-origin:top left;pointer-events:none;background:#fff}
+.frbanner::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(10,10,10,.2),var(--dbckg0) 70%)}
+#f1, #f2{grid-area:handbook;display:grid;grid-template-columns:40% 60%;grid-template-rows:60px calc(72% - 60px) 28%;
+  grid-template-areas:'name image' 'desc image' 'subs image';position:relative;min-height:340px}
+#f1 .frbanner, #f2 .frbanner{grid-area:image;position:relative;border-left:1px solid var(--border1-c)}
+#f1 .forumtitle, #f2 .forumtitle{grid-area:1 / 1 / 2 / 3;font:42px 'Anton';text-transform:uppercase;padding:5px 20px 0;color:var(--title);text-shadow:5px 5px var(--accent2)}
+#f1 .frdesc, #f2 .frdesc{grid-area:desc;padding:20px 15px 20px 20px}
+#f1 .frsubs, #f2 .frsubs{grid-area:subs;display:flex;justify-content:center;align-items:center;flex-wrap:wrap;padding:0 20px 20px;gap:10px}
+#f1 .frsubs a, #f2 .frsubs a{border:1px solid currentColor;border-radius:99px;flex-grow:1;align-self:stretch;font-size:11px;text-transform:uppercase;font-weight:700;display:flex;justify-content:center;align-items:center;min-width:25%;background:var(--tbckg1);padding:3px 5px}
+#f1 .frdata,#f1 .frlast{display:none}
+@media(max-width:700px){ #f1{grid-template-columns:1fr;grid-template-rows:auto auto 200px auto;grid-template-areas:'name' 'desc' 'image' 'subs'} #f1 .frbanner{min-height:200px} }
+
+/* botones */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;font-weight:700;font-size:.8rem;text-transform:uppercase;
+  letter-spacing:.5px;cursor:pointer;border:0;transition:.3s}
+.btn-fill{background:var(--accent);color:var(--accent-ink)}
+.btn-fill:hover{transform:translateY(-3px);box-shadow:0 12px 30px var(--glow)}
+.btn-line{border:1px solid var(--border2-c);color:var(--title);background:transparent}
+.btn-line:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-3px);box-shadow:0 10px 26px var(--glow)}
+.frlast .frbtn i{font-size:.8rem}
+
+/* ===================== SKILLS ===================== */
+#skills{margin-top:20px}
+.skills-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:14px}
+.skill{display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px 10px;border-radius:12px;
+  background:var(--tbckg3);border:1px solid var(--border1-c);transition:.3s;text-align:center}
+.skill:hover{transform:translateY(-6px);border-color:var(--accent);box-shadow:0 14px 34px var(--glow)}
+.skill i{font-size:2.2rem;color:var(--subtitle2);transition:.3s}
+.skill:hover i{color:var(--accent);transform:scale(1.12)}
+.skill span{font-size:.78rem;font-weight:700;color:var(--subtitle2)}
+.skill:hover span{color:var(--title)}
+
+/* ===================== CONTACTO / FOOTER ===================== */
+#contact{border-top:1px solid var(--border1-c);padding:60px 0 40px;margin-top:40px}
+#contact .cta h2{font:clamp(2.4rem,6vw,5rem) 'Anton';text-transform:uppercase;line-height:.9;color:var(--title);margin-bottom:14px}
+#contact .cta h2 a{background:linear-gradient(90deg,var(--accent2),var(--accent1));-webkit-background-clip:text;background-clip:text;color:transparent}
+#contact .cta p{color:var(--subtitle2);max-width:520px;margin-bottom:24px;line-height:1.6}
+.foot-row{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap;border-top:1px solid var(--border1-c);padding-top:24px;margin-top:50px}
+.socials{display:flex;gap:14px}
+.socials a{width:46px;height:46px;display:grid;place-items:center;border:1px solid var(--border2-c);color:var(--subtitle2);font-size:1.15rem;transition:.3s}
+.socials a:hover{color:var(--accent);border-color:var(--accent);transform:translateY(-4px);box-shadow:0 10px 26px var(--glow)}
+.foot-copy{color:var(--text);font-size:.8rem;font-family:'Archivo';font-weight:700;text-transform:uppercase;letter-spacing:1px}
+</style>
+</head>
+<body>
+<section id="container">
+  <!-- ===== HERO / HEADER ===== -->
+  <header>
+    <h>EVODIO</h>
+    <h class="borders">EVODIO</h>
+    <svg id="logosvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 379.9 333">
+      <defs>
+        <linearGradient id="MyGradient">
+          <stop offset="0%" stop-color="var(--accent1)"/>
+          <stop offset="60%" stop-color="var(--accent2)"/>
+          <stop offset="100%" stop-color="var(--accent3)"/>
+          <animateTransform attributeName="gradientTransform" type="rotate" values="0;360" dur="16s" repeatCount="indefinite"/>
+        </linearGradient>
+        <filter id="brush" x="-30%" y="-30%" width="160%" height="160%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.014 0.022" numOctaves="2" seed="4" result="noise">
+            <animate attributeName="baseFrequency" dur="5.5s" values="0.014 0.022;0.022 0.04;0.014 0.022" repeatCount="indefinite"/>
+          </feTurbulence>
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="18" xChannelSelector="R" yChannelSelector="G"/>
+        </filter>
+      </defs>
+<path fill="url(#MyGradient)" filter="url(#brush)" d="M109.1.4l1.8,3a230.8,230.8,0,0,1,15.6,30c1.2,2.9,2.1,5.9,3.1,8.8,2,6.1,5.6,11.1,9.7,15.7a64,64,0,0,1,4.2,4.9,10.2,10.2,0,0,1,2.1,6c.1,5.5,2.3,10.2,5.6,14.4s6,6.6,8.9,10,3.4,4.5,5.2,6.8l.6.8h.4a20,20,0,0,0,.4-2.4c-.2-4.2-.3-8.5-.6-12.7-.7-7-1.5-14.1-2.3-21.1,0-.1,0-.2.2-.4l.6,1.5c4.7,13.9,8.8,28,12.7,42.2,1.1,4.1,2.8,8,4.2,12l.9,1.7c.1.2.2.2.7.6.1-6.3-1.3-12.2-1.8-18.2,1,3.7,1.8,7.3,2.9,10.9q3,10.5,6.3,20.7a15.9,15.9,0,0,0,1.6,3.2h.6a12.2,12.2,0,0,0,.6-2.6c.2-5.5.5-11.1.3-16.5-.3-8.4-.9-16.8-1.5-25.2s-1.5-16.6-2.3-24.9-1.5-14.2-2.2-21.3v-1c4.2,19.3,8,38.6,16.4,56.5h.4l-.5-19.8h.1c.7,4.5,1.4,9,2,13.5l1.8,12.2a3.8,3.8,0,0,0,.5,1.5c2.9,4.3,4,9,4.7,14,1.4,9.2,3.1,18.5,4.7,28l5.3-2.7a1.5,1.5,0,0,0,.2-.8c-.1-2.1-.3-4.2-.4-6.2a9.7,9.7,0,0,0-1.7-5.1c-1.4-2.1-2.6-4.4-3.9-6.7s-1-4.1-.5-6.2.8-4.3,1.3-6.5a3.1,3.1,0,0,1,1-1.5c3.2-2.6,4.2-5.9,4.4-9.9.4-6.4,1.4-12.8,2.1-19.2h.5v5.2c-.3,6.5-.4,13.1-.8,19.6a22.4,22.4,0,0,1-1.3,5.7,10.5,10.5,0,0,0,.5,9,9.2,9.2,0,0,1,.7,4.7c-.1,5.3-.4,10.7-.7,16.1v1a14.3,14.3,0,0,0,2.8-1.3,2.3,2.3,0,0,0,.6-1.3c.7-5.3,1.4-10.6,2.2-15.9s1.6-11.8,2.5-17.7c-1,15-2.1,30-1.3,45.3,3.1-1.5,6.1-2.8,9-4.3s5-2.9,7.5-4.2,1.9-1.4,1.9-2.8a2.7,2.7,0,0,1,.3-1.2,15.4,15.4,0,0,1,.2,2.4l2.2-1.4c3.4-2.3,6.9-4.6,10.2-7a2.6,2.6,0,0,0,1.2-1.5L276,103.4a2.4,2.4,0,0,1,.5-1c-1.8,10.6-3.7,21.2-5.5,32l18.8-11.5.3.3a11.3,11.3,0,0,0-1,1.3c-3.6,4.7-6.9,9.5-8.8,15.1a14.3,14.3,0,0,0-.9,5,5.1,5.1,0,0,0,4.7,5.5,17.6,17.6,0,0,0,8.8-.9c7-2.1,13.3-5.7,19.3-9.8a136.6,136.6,0,0,0,16.3-13,1,1,0,0,1,.8-.4l-.6,1c-3.5,6.6-7.1,13.2-10.5,19.9a18.1,18.1,0,0,0-1.4,4.5c-.3,1.5.4,1.9,1.8,1.3l1.9-.9c-.1,1.4-.4,2.7-.4,4a64.7,64.7,0,0,0,.3,8.8c.6,3.8,2.7,4.3,5.6,1.8l.9-.8c-.8,14.2-4.7,27.1-14.3,37.9a98.1,98.1,0,0,1-17.8,15.6l.6-.9c4.3-5.9,8.1-12.2,10.3-19.3a24.4,24.4,0,0,0,1.1-10.4,11.8,11.8,0,0,0-8.1-10l-1.2-.4a11.6,11.6,0,0,0,2.2-1.3,2.9,2.9,0,0,0,.7-4.4,8,8,0,0,0-4.4-2.9c-4.1-1.2-8.3-.8-12.4.2l-3.3.9c0-.4.1-.7.1-1s-.4-2.9-2-3.3a21,21,0,0,0-5.6-.7,42.2,42.2,0,0,0-... (line truncated to 2000 chars)"/>
+    </svg>
+    <span></span>
+    <!-- Selector de skin en el hero -->
+    <div id="skinselector-hero">
+      <span class="skin-button" data-skin="default" title="Azul"><em class="fa-solid fa-droplet"></em></span>
+      <span class="skin-button" data-skin="berenice" title="Rosa"><em class="fa-solid fa-gem"></em></span>
+      <span class="skin-button" data-skin="eira" title="Naranja"><em class="fa-solid fa-sun"></em></span>
+    </div>
+    <a href="#tablon" class="flex flex-col">Evodio<span>INGENIERO EN SISTEMAS COMPUTACIONALES / FULLSTACK</span></a>
+  </header>
+
+  <!-- ===== NAV (estilo foro original) ===== -->
+  <nav>
+    <div class="navmain">
+      <a id="menu" title="Menú"><i class="fa-solid fa-bars"></i></a>
+      <a href="#tablon" class="mainmenu" title="Sobre mí"><i class="fa-solid fa-user"></i></a>
+      <a href="#work" class="mainmenu" title="Proyectos"><i class="fa-solid fa-folder-open"></i></a>
+      <a href="#skills" class="mainmenu" title="Skills"><i class="fa-solid fa-code"></i></a>
+      <a href="#contact" class="mainmenu" title="Contacto"><i class="fa-solid fa-paper-plane"></i></a>
+    </div>
+    <div class="navtree">
+      <a href="#container">Evodio.dev</a>
+      <a href="#tablon">Perfil</a>
+      <a href="#work">Proyectos</a>
+      <a href="#contact">Contacto</a>
+    </div>
+    <div id="skinselector">
+      <span class="skin-button" data-skin="default" title="Azul"><em class="fa-solid fa-droplet"></em></span>
+      <span class="skin-button" data-skin="berenice" title="Rosa"><em class="fa-solid fa-gem"></em></span>
+      <span class="skin-button" data-skin="eira" title="Naranja"><em class="fa-solid fa-sun"></em></span>
+    </div>
+  </nav>
+
+  <main id="main">
+    <!-- ===== TABLÓN (pestañas deslizantes) ===== -->
+    <section id="wrap">
+      <article id="tablon" class="tbcont1">
+        <div class="tbtabs flex flex-col">
+          <span class="tbtab active" data-tab="tbcont1"></span>
+          <span class="tbtab" data-tab="tbcont2"></span>
+          <span class="tbtab" data-tab="tbcont3"></span>
+        </div>
+        <div class="tbconts">
+          <span></span>
+           <div class="tbcont" id="tbcont1">
+            <div class="sobre-avatar">
+              <img class="char-discboom" alt="Evodio" src="https://api.dicebear.com/9.x/adventurer/svg?seed=male_bcdojb&skinColor=f3d3a0&hairColor=000000&backgroundColor=transparent"
+                   onerror="this.onerror=null;this.src='https://api.dicebear.com/9.x/adventurer/svg?seed=Evodio&backgroundColor=transparent';" />
+              <img class="char-berenice" alt="Evodio" src="https://api.dicebear.com/9.x/adventurer/svg?seed=88to2f662&skinColor=f3d3a0&hairColor=000000&backgroundColor=transparent"
+                   onerror="this.onerror=null;this.src='https://api.dicebear.com/9.x/adventurer/svg?seed=Evodio2&backgroundColor=transparent';" />
+              <img class="char-eira" alt="Evodio" src="https://api.dicebear.com/9.x/adventurer/svg?seed=88to2f72504&skinColor=f3d3a0&hairColor=000000&backgroundColor=transparent&glassesProbability=0"
+                   onerror="this.onerror=null;this.src='https://api.dicebear.com/9.x/adventurer/svg?seed=Evodio3&backgroundColor=transparent';" />
+            </div>
+            <h>SOBRE MÍ</h>
+            <p><b>EVODIO — INGENIERO EN SISTEMAS COMPUTACIONALES.</b><br><br>
+            Desarrollo software y experiencias web <b>fullstack</b>, del front-end al back-end. Combino código limpio, arquitectura sólida y una sana obsesión por el detalle y la experiencia de usuario.<br><br>
+            Cada proyecto es una oportunidad de aprender algo nuevo: desde landings inmersivas hasta simulaciones interactivas, cuidando siempre la responsividad, la accesibilidad y la calidad del código.</p>
+          </div>
+          <div class="tbcont flex" id="tbcont2">
+            <div class="card">
+              <h3 style="font:18px 'Anton';text-transform:uppercase;color:var(--title);margin-bottom:8px">Enfoque</h3>
+              <p style="color:var(--subtitle2);font-size:13px;line-height:1.6">Front-end, Back-end, Bases de datos y DevOps. Me adapto a equipos ágiles y a retos de producto de extremo a extremo.</p>
+            </div>
+            <div class="card">
+              <h3 style="font:18px 'Anton';text-transform:uppercase;color:var(--title);margin-bottom:8px">Filosofía</h3>
+              <p style="color:var(--subtitle2);font-size:13px;line-height:1.6">Diseño centrado en el usuario, rendimiento y mantenibilidad. El código es una herramienta, no un fin.</p>
+            </div>
+            <div class="card">
+              <h3 style="font:18px 'Anton';text-transform:uppercase;color:var(--title);margin-bottom:8px">Aprendizaje</h3>
+              <p style="color:var(--subtitle2);font-size:13px;line-height:1.6">Formación continua en tecnologías modernas: frameworks JS, APIs, contenedores y cloud.</p>
+            </div>
+          </div>
+          <div class="tbcont" id="tbcont3">
+            <h>COMPETENCIAS</h>
+            <ul>
+              <li>HTML5 / CSS3</li><li>JavaScript / TypeScript</li><li>PHP / Python</li>
+              <li>React / Angular / Next.js</li><li>Laravel / Bootstrap</li><li>Java / C# / C++</li>
+              <li>Node.js / Docker</li><li>PostgreSQL / MySQL</li><li>UI / UX</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <!-- ===== PROYECTOS (filas de foro) ===== -->
+      <section id="work" class="forumbody">
+        <div id="c1" class="forabg">
+          <div class="header"><h2 class="flex"><span>PROYECTOS SELECCIONADOS</span></h2></div>
+          <!-- Proyecto destacado con preview iframe -->
+           <div class="frow" id="f1">
+            <a href="./SAOWebPage/index.html" class="forumtitle">SAO Web Page</a>
+            <div class="frdesc">
+              <div class="desc">Landing inmersiva inspirada en Sword Art Online, con secciones animadas y ambientación temática del universo del anime. Vista previa en vivo del sitio completo.</div>
+              <div class="frsubs">
+                <a href="./SAOWebPage/index.html"><i class="fa-brands fa-html5"></i> HTML</a>
+                <a href="./SAOWebPage/index.html"><i class="fa-brands fa-css3"></i> CSS</a>
+                <a href="./SAOWebPage/index.html"><i class="fa-brands fa-js"></i> JS</a>
+                <a href="./SAOWebPage/index.html" class="btn btn-fill" style="border-radius:99px"><i class="fa-solid fa-up-right-from-square"></i> Abrir</a>
+              </div>
+            </div>
+            <div class="frbanner">
+              <iframe class="pframe" src="./SAOWebPage/index.html" title="SAO Web Page" loading="lazy" scrolling="no" tabindex="-1"></iframe>
+            </div>
+          </div>
+          <!-- Proyecto destacado supervifile -->
+          <div class="frow" id="f2">
+            <a href="./supervifile/" class="forumtitle">Supervifile</a>
+            <div class="frdesc">
+              <div class="desc">Aplicación full-stack de gestión de archivos con autenticación. Construida con Next.js y TypeScript sobre Tailwind CSS, con base de datos en Prisma y Supabase, autenticación vía NextAuth (Google), cifrado de credenciales con bcryptjs e integración con Google APIs.</div>
+              <div class="frsubs">
+                <a href="./supervifile/"><i class="fa-brands fa-js"></i> TypeScript</a>
+                <a href="./supervifile/"><i class="fa-solid fa-server"></i> Next.js</a>
+                <a href="./supervifile/"><i class="fa-solid fa-wind"></i> Tailwind</a>
+                <a href="./supervifile/"><i class="fa-solid fa-database"></i> Prisma</a>
+                <a href="./supervifile/"><i class="fa-solid fa-database"></i> Supabase</a>
+                <a href="./supervifile/" class="btn btn-fill" style="border-radius:99px"><i class="fa-solid fa-up-right-from-square"></i> Abrir</a>
+              </div>
+            </div>
+            <div class="frbanner">
+              <iframe class="pframe" src="./supervifile/" title="Supervifile" loading="lazy" scrolling="no" tabindex="-1"></iframe>
+            </div>
+          </div>
+          <!-- Proyecto 2 -->
+           <div class="frow">
+             <div class="fpreview"><iframe class="pframe" src="./LoatheWebPage/index.html" title="Loathe" loading="lazy" scrolling="no" tabindex="-1"></iframe></div>
+             <a href="./LoatheWebPage/index.html" class="forumtitle">Loathe</a>
+            <div class="frdesc"><div class="desc">Sitio de estética oscura y editorial con tipografía expresiva y transiciones cuidadas.</div></div>
+            <div class="frdata"><span><b>HTML</b></span><span><b>CSS</b></span><span><b>JS</b></span></div>
+            <div class="frlast"><span style="color:var(--subtitle2);font-size:12px;font-weight:700">LANDING EDITORIAL</span>
+              <a href="./LoatheWebPage/index.html" class="btn btn-line frbtn"><i class="fa-solid fa-up-right-from-square"></i> Ver</a></div>
+          </div>
+          <!-- Proyecto 3 -->
+           <div class="frow">
+             <div class="fpreview"><iframe class="pframe" src="./EjemexWebpage/index.html" title="Ejemex" loading="lazy" scrolling="no" tabindex="-1"></iframe></div>
+             <a href="./EjemexWebpage/index.html" class="forumtitle">Ejemex</a>
+            <div class="frdesc"><div class="desc">Sitio corporativo con estructura clara, secciones de servicios y presentación de marca.</div></div>
+            <div class="frdata"><span><b>HTML</b></span><span><b>CSS</b></span><span><b>JS</b></span></div>
+            <div class="frlast"><span style="color:var(--subtitle2);font-size:12px;font-weight:700">SITIO CORPORATIVO</span>
+              <a href="./EjemexWebpage/index.html" class="btn btn-line frbtn"><i class="fa-solid fa-up-right-from-square"></i> Ver</a></div>
+          </div>
+          <!-- Proyecto 4 -->
+           <div class="frow">
+             <div class="fpreview"><iframe class="pframe" src="./Pagina Animales/index.html" title="Página Animales" loading="lazy" scrolling="no" tabindex="-1"></iframe></div>
+             <a href="./Pagina Animales/index.html" class="forumtitle">Página Animales</a>
+            <div class="frdesc"><div class="desc">Sitio educativo sobre fauna con galería de especies y tarjetas informativas amigables.</div></div>
+            <div class="frdata"><span><b>HTML</b></span><span><b>CSS</b></span><span><b>JS</b></span></div>
+            <div class="frlast"><span style="color:var(--subtitle2);font-size:12px;font-weight:700">EDUCATIVO</span>
+              <a href="./Pagina Animales/index.html" class="btn btn-line frbtn"><i class="fa-solid fa-up-right-from-square"></i> Ver</a></div>
+          </div>
+           <!-- Proyecto 5 -->
+            <div class="frow">
+              <div class="fpreview"><iframe class="pframe" src="./SolarSystem/index.html" title="Solar System" loading="lazy" scrolling="no" tabindex="-1"></iframe></div>
+              <a href="./SolarSystem/index.html" class="forumtitle">Solar System</a>
+             <div class="frdesc"><div class="desc">Simulación interactiva del sistema solar con órbitas animadas y planetas a escala.</div></div>
+             <div class="frdata"><span><b>HTML</b></span><span><b>CSS</b></span><span><b>JS</b></span></div>
+             <div class="frlast"><span style="color:var(--subtitle2);font-size:12px;font-weight:700">SIMULACIÓN</span>
+               <a href="./SolarSystem/index.html" class="btn btn-line frbtn"><i class="fa-solid fa-up-right-from-square"></i> Ver</a></div>
+           </div>
+           <!-- Proyecto 6 -->
+            <div class="frow">
+              <div class="fpreview"><img src="https://placehold.co/190x128/0a2a4a/38bdf8?text=SuperviFile" alt="SuperviFile" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:10px"/></div>
+              <a href="./supervifile/" class="forumtitle">SuperviFile</a>
+             <div class="frdesc"><div class="desc">Gestor de archivos fullstack con autenticación, integración con Supabase, gestión de carpetas, búsqueda y registro de actividad.</div></div>
+             <div class="frdata"><span><b>Next.js</b></span><span><b>React</b></span><span><b>TS</b></span></div>
+             <div class="frlast"><span style="color:var(--subtitle2);font-size:12px;font-weight:700">APP FULLSTACK</span>
+               <a href="./supervifile/" class="btn btn-line frbtn"><i class="fa-solid fa-up-right-from-square"></i> Ver</a></div>
+           </div>
+         </div>
+      </section>
+
+      <!-- ===== SKILLS ===== -->
+      <section id="skills" class="forabg">
+        <div class="header"><h2 class="flex"><span>HABILIDADES TÉCNICAS</span></h2></div>
+        <div class="skills-grid">
+          <div class="skill"><i class="fa-brands fa-html5"></i><span>HTML5</span></div>
+          <div class="skill"><i class="fa-brands fa-css3"></i><span>CSS3</span></div>
+          <div class="skill"><i class="fa-brands fa-php"></i><span>PHP</span></div>
+          <div class="skill"><i class="fa-brands fa-js"></i><span>JavaScript</span></div>
+          <div class="skill"><i class="fa-brands fa-js"></i><span>TypeScript</span></div>
+          <div class="skill"><i class="fa-brands fa-bootstrap"></i><span>Bootstrap</span></div>
+          <div class="skill"><i class="fa-brands fa-react"></i><span>React</span></div>
+          <div class="skill"><i class="fa-brands fa-angular"></i><span>Angular</span></div>
+          <div class="skill"><i class="fa-brands fa-laravel"></i><span>Laravel</span></div>
+          <div class="skill"><i class="fa-brands fa-docker"></i><span>Docker</span></div>
+          <div class="skill"><i class="fa-brands fa-python"></i><span>Python</span></div>
+          <div class="skill"><i class="fa-brands fa-java"></i><span>Java</span></div>
+          <div class="skill"><i class="fa-solid fa-c"></i><span>C#</span></div>
+          <div class="skill"><i class="fa-solid fa-c"></i><span>C++</span></div>
+          <div class="skill"><i class="fa-solid fa-database"></i><span>PostgreSQL</span></div>
+          <div class="skill"><i class="fa-solid fa-database"></i><span>MySQL</span></div>
+          <div class="skill"><i class="fa-brands fa-node-js"></i><span>Node.js</span></div>
+          <div class="skill"><i class="fa-brands fa-js"></i><span>Next.js</span></div>
+        </div>
+      </section>
+
+      <!-- ===== CONTACTO / FOOTER ===== -->
+      <footer id="contact">
+        <div class="cta">
+          <h2>Hagamos <a href="mailto:evodio@email.com">algo juntos</a></h2>
+          <p>¿Tienes un proyecto en mente o una oportunidad laboral? Escríbeme y construyamos algo increíble.</p>
+          <div style="display:flex;gap:14px;flex-wrap:wrap">
+            <a href="mailto:evodio@email.com" class="btn btn-fill"><i class="fa-solid fa-envelope"></i> evodio@email.com</a>
+            <a href="#" class="btn btn-line"><i class="fa-solid fa-file-arrow-down"></i> Descargar CV</a>
+          </div>
+        </div>
+        <div class="foot-row">
+          <div class="socials">
+            <a href="#" aria-label="GitHub"><i class="fa-brands fa-github"></i></a>
+            <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+            <a href="#" aria-label="X"><i class="fa-brands fa-x-twitter"></i></a>
+            <a href="mailto:evodio@email.com" aria-label="Email"><i class="fa-solid fa-envelope"></i></a>
+          </div>
+          <p class="foot-copy">© 2026 Evodio · Ingeniero en Sistemas Computacionales</p>
+        </div>
+      </footer>
+    </section>
+  </main>
+</section>
+
+<!-- Indicador de scroll (centrado abajo, fijo al viewport) -->
+<div class="scroll-cue"><span class="cue-label">Desliza para explorar</span><span class="cue-arrow"></span></div>
+
+<!-- ===== SCRIPTS ===== -->
+<script>
+/* ===== Skins ===== */
+const html=document.documentElement;
+const saved=localStorage.getItem('skin'); if(saved) html.setAttribute('data-skin',saved);
+document.querySelectorAll('.skin-button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    html.setAttribute('data-skin',b.dataset.skin); localStorage.setItem('skin',b.dataset.skin);
+  });
+});
+
+/* ===== Tablón (pestañas deslizantes) ===== */
+const tablon=document.getElementById('tablon');
+document.querySelector('.tbtabs').addEventListener('click',e=>{
+  const t=e.target.closest('.tbtab'); if(!t)return;
+  document.querySelectorAll('.tbtab').forEach(x=>x.classList.toggle('active',x===t));
+  tablon.className='tbcont1'; // reset
+  tablon.classList.add(t.dataset.tab);
+});
+
+/* ===== Navegación: scroll suave DENTRO del contenedor ===== */
+document.querySelectorAll('.navmain a, .navtree a').forEach(a=>{
+  a.addEventListener('click',e=>{
+    const h=a.getAttribute('href');
+    if(h && h.startsWith('#') && h.length>1){
+      const t=document.querySelector(h);
+      if(t){ e.preventDefault(); t.scrollIntoView({behavior:'smooth'}); }
+    }
+  });
+});
+
+/* ===== Ocultar indicador de scroll al bajar ===== */
+const cue=document.querySelector('.scroll-cue');
+const ctn=document.getElementById('container');
+ctn.addEventListener('scroll',()=>{ cue.classList.toggle('hide', ctn.scrollTop > window.innerHeight*0.4); });
+
+/* ===== Escala responsive de previews (iframe miniatura 100% responsive) ===== */
+function scalePreviews(){
+  document.querySelectorAll('.frbanner,.fpreview').forEach(v=>{
+    const f=v.querySelector('.pframe'); if(!f)return;
+    const s=v.clientWidth/1280;
+    f.style.transform='scale('+s+')';
+    if(v.classList.contains('fpreview')) return;
+    v.style.height=(800*s)+'px';
+  });
+}
+addEventListener('load',scalePreviews);
+addEventListener('DOMContentLoaded',scalePreviews);
+let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(scalePreviews,120);});
+</script>
+</body>
+</html>

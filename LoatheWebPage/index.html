@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOATHE // I LET IT IN</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --bg: #050508;
+            --bg-card: rgba(8, 8, 15, 0.85);
+            --accent: #4a6fa5;
+            --accent-glow: rgba(74, 111, 165, 0.5);
+            --accent-bright: #6b9bd2;
+            --text-primary: #c8c8d0;
+            --text-dim: #6a6a78;
+            --text-bright: #e8e8f0;
+            --border: rgba(74, 111, 165, 0.2);
+            --border-hover: rgba(74, 111, 165, 0.6);
+            --font-display: 'Syncopate', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        a {
+            color: var(--accent-bright);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        a:hover {
+            color: #fff;
+        }
+
+        /* ── Canvas Background ── */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ── Noise Overlay ── */
+        .noise-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 5;
+            opacity: 0.04;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            background-repeat: repeat;
+        }
+
+        /* ── Custom Cursor ── */
+        .cursor {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--accent);
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.15s ease-out, border-color 0.3s;
+            display: grid;
+            place-items: center;
+            mix-blend-mode: difference;
+        }
+
+        .cursor::after {
+            content: '';
+            width: 4px;
+            height: 4px;
+            background: var(--accent-bright);
+            border-radius: 50%;
+        }
+
+        .cursor.hover {
+            transform: scale(1.8);
+            border-color: var(--accent-bright);
+        }
+
+        /* ── UI Layer ── */
+        .ui-layer {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ── Navigation ── */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            backdrop-filter: blur(12px);
+            background: rgba(5, 5, 8, 0.6);
+            border-bottom: 1px solid var(--border);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .nav-logo {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            color: var(--text-bright);
+            letter-spacing: 8px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 35px;
+            list-style: none;
+        }
+
+        .nav-links li {
+            position: relative;
+            padding-bottom: 4px;
+            color: var(--text-dim);
+            cursor: none;
+            transition: color 0.3s;
+        }
+
+        .nav-links li::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--accent);
+            transition: width 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .nav-links li:hover {
+            color: var(--text-bright);
+        }
+
+        .nav-links li:hover::after {
+            width: 100%;
+        }
+
+        /* ── Lang Toggle ── */
+        .lang-btn {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            font-family: var(--font-mono);
+            font-size: 0.55rem;
+            letter-spacing: 2px;
+            padding: 4px 10px;
+            cursor: none;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        .lang-btn:hover {
+            border-color: var(--border-hover);
+            color: var(--text-bright);
+        }
+
+        /* ── Hero ── */
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            padding: 40px;
+        }
+
+        .hero-title {
+            font-family: var(--font-display);
+            font-size: clamp(3rem, 10vw, 8rem);
+            font-weight: 700;
+            letter-spacing: 15px;
+            color: var(--text-bright);
+            text-shadow: 0 0 60px var(--accent-glow);
+            line-height: 1;
+            margin-bottom: 20px;
+            animation: fadeIn 2s ease-out;
+        }
+
+        .hero-sub {
+            font-size: 0.7rem;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            animation: fadeIn 2s ease-out 0.5s both;
+        }
+
+        .hero-line {
+            width: 1px;
+            height: 80px;
+            background: linear-gradient(to bottom, var(--accent), transparent);
+            margin-top: 40px;
+            animation: fadeIn 2s ease-out 1s both;
+        }
+
+        .hero-status {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            font-size: 0.6rem;
+            letter-spacing: 2px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        .hero-coords {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            font-size: 0.6rem;
+            letter-spacing: 2px;
+            color: var(--text-dim);
+            text-align: right;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Sections ── */
+        section {
+            padding: 120px 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-label {
+            font-size: 0.6rem;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 15px;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            font-weight: 700;
+            letter-spacing: 4px;
+            color: var(--text-bright);
+            margin-bottom: 50px;
+        }
+
+        .divider {
+            width: 60px;
+            height: 1px;
+            background: var(--accent);
+            margin-bottom: 50px;
+        }
+
+        /* ── About ── */
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: start;
+        }
+
+        .about-text {
+            font-size: 0.85rem;
+            line-height: 1.9;
+            color: var(--text-primary);
+        }
+
+        .about-text p {
+            margin-bottom: 20px;
+        }
+
+        .about-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .meta-item {
+            border-left: 1px solid var(--border);
+            padding-left: 20px;
+        }
+
+        .meta-label {
+            font-size: 0.55rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 6px;
+        }
+
+        .meta-value {
+            font-size: 0.8rem;
+            color: var(--text-bright);
+        }
+
+        /* ── Discography ── */
+        .albums-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .album-card {
+            position: relative;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 380px;
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            clip-path: polygon(0 0, 92% 0, 100% 8%, 100% 100%, 8% 100%, 0 92%);
+            overflow: hidden;
+        }
+
+        .album-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent 40%, rgba(74, 111, 165, 0.06) 50%, transparent 60%);
+            background-size: 200% 200%;
+            animation: flow 5s infinite linear;
+        }
+
+        @keyframes flow {
+            0% { background-position: -200% -200%; }
+            100% { background-position: 200% 200%; }
+        }
+
+        .album-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-10px);
+            box-shadow: 0 30px 60px rgba(74, 111, 165, 0.12);
+        }
+
+        .album-id {
+            font-size: 0.6rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+
+        .album-visual {
+            flex: 1;
+            display: grid;
+            place-items: center;
+            margin: 20px 0;
+        }
+
+        .album-visual svg {
+            width: 120px;
+            height: 120px;
+            opacity: 0.6;
+            filter: drop-shadow(0 0 15px var(--accent-glow));
+        }
+
+        .album-info h3 {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            letter-spacing: 2px;
+            color: var(--text-bright);
+            margin-bottom: 8px;
+        }
+
+        .album-info .album-year {
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+        }
+
+        .album-info .album-desc {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            margin-top: 12px;
+            line-height: 1.6;
+        }
+
+        /* ── Members ── */
+        .members-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+        }
+
+        .member-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 30px 25px;
+            text-align: center;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .member-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .member-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-5px);
+        }
+
+        .member-card:hover::after {
+            opacity: 1;
+        }
+
+        .member-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 20px;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+        }
+
+        .member-icon svg {
+            width: 28px;
+            height: 28px;
+            opacity: 0.7;
+        }
+
+        .member-name {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            letter-spacing: 3px;
+            color: var(--text-bright);
+            margin-bottom: 8px;
+        }
+
+        .member-role {
+            font-size: 0.6rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent);
+        }
+
+        /* ── Tracks ── */
+        .tracks-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .track-item {
+            display: grid;
+            grid-template-columns: 40px 1fr auto 36px;
+            align-items: center;
+            gap: 20px;
+            padding: 18px 25px;
+            background: var(--bg-card);
+            border: 1px solid transparent;
+            transition: all 0.3s;
+            cursor: none;
+        }
+
+        .track-item:hover {
+            border-color: var(--border);
+            background: rgba(74, 111, 165, 0.05);
+        }
+
+        .track-num {
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            text-align: right;
+        }
+
+        .track-name {
+            font-size: 0.85rem;
+            color: var(--text-bright);
+            letter-spacing: 1px;
+        }
+
+        .track-album {
+            font-size: 0.6rem;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .track-play {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            background: none;
+            cursor: none;
+            display: grid;
+            place-items: center;
+            transition: all 0.3s;
+            padding: 0;
+        }
+
+        .track-play:hover {
+            border-color: var(--accent);
+        }
+
+        .track-play.active {
+            border-color: var(--accent-bright);
+            background: rgba(74, 111, 165, 0.15);
+        }
+
+        .track-play svg {
+            width: 12px;
+            height: 12px;
+        }
+
+        .track-embed {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .track-embed.open {
+            max-height: 160px;
+        }
+
+        .track-embed iframe {
+            width: 100%;
+            height: 152px;
+            border: 0;
+            border-radius: 8px;
+            cursor: auto;
+        }
+
+        body.cursor-off .cursor {
+            opacity: 0;
+        }
+
+        /* ── Tour ── */
+        .tour-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .tour-item {
+            display: grid;
+            grid-template-columns: 120px 1fr auto;
+            align-items: center;
+            gap: 30px;
+            padding: 25px 30px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            transition: all 0.4s;
+            cursor: none;
+        }
+
+        .tour-item:hover {
+            border-color: var(--border-hover);
+            transform: translateX(5px);
+        }
+
+        .tour-date {
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            color: var(--accent);
+            text-transform: uppercase;
+        }
+
+        .tour-venue {
+            font-size: 0.85rem;
+            color: var(--text-bright);
+        }
+
+        .tour-location {
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+        }
+
+        .tour-status {
+            font-size: 0.55rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            padding: 6px 14px;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+        }
+
+        .tour-status.sold-out {
+            border-color: rgba(180, 60, 60, 0.4);
+            color: #b43c3c;
+        }
+
+        /* ── Footer ── */
+        .footer {
+            border-top: 1px solid var(--border);
+            padding: 60px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.6rem;
+            letter-spacing: 2px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            position: relative;
+            z-index: 10;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        .footer-links li {
+            cursor: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links li:hover {
+            color: var(--text-bright);
+        }
+
+        /* ── Scroll Reveal ── */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .nav {
+                padding: 15px 20px;
+            }
+
+            .nav-links {
+                gap: 15px;
+            }
+
+            .nav-links li {
+                font-size: 0.55rem;
+                letter-spacing: 2px;
+            }
+
+            section {
+                padding: 80px 20px;
+            }
+
+            .about-content {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .albums-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .members-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .tour-item {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .footer {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .hero-status,
+            .hero-coords {
+                display: none;
+            }
+
+            .cursor {
+                display: none;
+            }
+
+            body {
+                cursor: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div class="noise-overlay"></div>
+    <div class="cursor" id="cursor"></div>
+
+    <div class="ui-layer">
+        <nav class="nav">
+            <div class="nav-logo">LOATHE</div>
+            <ul class="nav-links">
+                <li><a href="#about" data-i18n="nav_about">About</a></li>
+                <li><a href="#discography" data-i18n="nav_disco">Discography</a></li>
+                <li><a href="#members" data-i18n="nav_members">Members</a></li>
+                <li><a href="#tracks" data-i18n="nav_tracks">Tracks</a></li>
+                <li><a href="#tour" data-i18n="nav_tour">Tour</a></li>
+            </ul>
+            <button class="lang-btn" id="langToggle">ES</button>
+        </nav>
+
+        <section class="hero">
+            <div class="hero-sub" data-i18n="hero_sub1">Liverpool // 2014&mdash;Present</div>
+            <h1 class="hero-title">LOATHE</h1>
+            <div class="hero-sub" data-i18n="hero_sub2">Metalcore &middot; Shoegaze &middot; Nu Metal</div>
+            <div class="hero-line"></div>
+            <div class="hero-status" data-i18n="hero_status">System: Active</div>
+            <div class="hero-coords">53.4084&deg; N<br>2.9916&deg; W</div>
+        </section>
+
+        <section id="about" class="reveal">
+            <div class="section-label" data-i18n="about_label">001 // Origin</div>
+            <h2 class="section-title" data-i18n="about_title">About</h2>
+            <div class="divider"></div>
+            <div class="about-content">
+                <div class="about-text">
+                    <p data-i18n="about_p1">Loathe are a genre-defying force from Liverpool, England. Blending the crushing weight of metalcore with the ethereal textures of shoegaze and the rhythmic pulse of nu metal, they create soundscapes that are simultaneously punishing and beautiful.</p>
+                    <p data-i18n="about_p2">Formed in 2014, the band quickly gained attention for their uncompromising vision&mdash;a fusion of visceral screamed vocals and haunting clean melodies layered over baritone guitar riffs and industrial-tinged electronics.</p>
+                    <p data-i18n="about_p3">Their breakthrough album <em>I Let It in and It Took Everything</em> (2020) was hailed as a landmark record, earning a place among Metal Hammer's best metal albums of the year and drawing comparisons to Deftones and Radiohead.</p>
+                </div>
+                <div class="about-meta">
+                    <div class="meta-item">
+                        <div class="meta-label" data-i18n="meta_origin">Origin</div>
+                        <div class="meta-value">Liverpool, Merseyside, England</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label" data-i18n="meta_formed">Formed</div>
+                        <div class="meta-value">2014</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label" data-i18n="meta_labels">Labels</div>
+                        <div class="meta-value">SharpTone Records &middot; Nuclear Blast</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label" data-i18n="meta_genres">Genres</div>
+                        <div class="meta-value">Metalcore &middot; Shoegaze &middot; Nu Metal &middot; Post-Metal &middot; Progressive Metal</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label" data-i18n="meta_infl">Influences</div>
+                        <div class="meta-value">Deftones &middot; Slipknot &middot; Radiohead &middot; Code Orange &middot; Vein.fm</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="discography" class="reveal">
+            <div class="section-label" data-i18n="disco_label">002 // Discography</div>
+            <h2 class="section-title" data-i18n="disco_title">Albums</h2>
+            <div class="divider"></div>
+            <div class="albums-grid">
+                <div class="album-card">
+                    <div class="album-id">Fragment_001</div>
+                    <div class="album-visual">
+                        <svg viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="40" fill="none" stroke="var(--accent)" stroke-width="0.5"/>
+                            <circle cx="50" cy="50" r="25" fill="none" stroke="var(--accent)" stroke-width="1" stroke-dasharray="4 3"/>
+                            <path d="M30 50 L70 50 M50 30 L50 70" stroke="var(--accent)" stroke-width="0.8"/>
+                            <path d="M35 35 L65 65 M35 65 L65 35" stroke="var(--accent)" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div class="album-info">
+                        <h3>The Cold Sun</h3>
+                        <div class="album-year">2017 &middot; Studio Album</div>
+                        <div class="album-desc" data-i18n="alb1">A post-apocalyptic concept album exploring isolation and violence in a world Without light.</div>
+                    </div>
+                </div>
+
+                <div class="album-card">
+                    <div class="album-id">Fragment_002</div>
+                    <div class="album-visual">
+                        <svg viewBox="0 0 100 100">
+                            <rect x="15" y="15" width="70" height="70" fill="none" stroke="var(--accent)" stroke-width="0.5"/>
+                            <rect x="25" y="25" width="50" height="50" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+                            <path d="M50 5 L50 95 M5 50 L95 50" stroke="var(--accent)" stroke-width="0.4" stroke-dasharray="2 3"/>
+                        </svg>
+                    </div>
+                    <div class="album-info">
+                        <h3>I Let It in and It Took Everything</h3>
+                        <div class="album-year">2020 &middot; Studio Album</div>
+                        <div class="album-desc" data-i18n="alb2">The breakthrough record. A masterclass in dynamic contrast&mdash;crushing heaviness meets shoegaze beauty.</div>
+                    </div>
+                </div>
+
+                <div class="album-card">
+                    <div class="album-id">Fragment_003</div>
+                    <div class="album-visual">
+                        <svg viewBox="0 0 100 100">
+                            <path d="M50 10 L90 50 L50 90 L10 50 Z" fill="none" stroke="var(--accent)" stroke-width="0.5"/>
+                            <circle cx="50" cy="50" r="20" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="6 2"/>
+                            <path d="M50 25 L50 75" stroke="var(--accent)" stroke-width="0.6"/>
+                        </svg>
+                    </div>
+                    <div class="album-info">
+                        <h3>the Things They Believe</h3>
+                        <div class="album-year">2021 &middot; Ambient/Instrumental</div>
+                        <div class="album-desc" data-i18n="alb3">An atmospheric companion piece. Electronic textures and cinematic ambience.</div>
+                    </div>
+                </div>
+
+                <div class="album-card">
+                    <div class="album-id">Fragment_004</div>
+                    <div class="album-visual">
+                        <svg viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="35" fill="none" stroke="var(--accent)" stroke-width="0.5"/>
+                            <path d="M25 50 Q50 15 75 50 Q50 85 25 50" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+                            <circle cx="50" cy="50" r="5" fill="var(--accent)" opacity="0.4"/>
+                        </svg>
+                    </div>
+                    <div class="album-info">
+                        <h3>A Stranger To You</h3>
+                        <div class="album-year">2026 &middot; Studio Album</div>
+                        <div class="album-desc" data-i18n="alb4">Their most sonically adventurous work to date. A bold evolution of the Loathe sound.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="members" class="reveal">
+            <div class="section-label" data-i18n="mem_label">003 // Members</div>
+            <h2 class="section-title" data-i18n="mem_title">The Band</h2>
+            <div class="divider"></div>
+            <div class="members-grid">
+                <div class="member-card">
+                    <div class="member-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                        </svg>
+                    </div>
+                    <div class="member-name">Kadeem France</div>
+                    <div class="member-role" data-i18n="role_vocals">Lead Vocals</div>
+                </div>
+                <div class="member-card">
+                    <div class="member-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5">
+                            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                        </svg>
+                    </div>
+                    <div class="member-name">Erik Bickerstaffe</div>
+                    <div class="member-role" data-i18n="role_guitar">Guitar &middot; Vocals</div>
+                </div>
+                <div class="member-card">
+                    <div class="member-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="10"/>
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M12 2v4m0 12v4M2 12h4m12 0h4"/>
+                        </svg>
+                    </div>
+                    <div class="member-name">Sean Radcliffe</div>
+                    <div class="member-role" data-i18n="role_drums">Drums</div>
+                </div>
+                <div class="member-card">
+                    <div class="member-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5">
+                            <rect x="4" y="4" width="16" height="16" rx="2"/>
+                            <path d="M9 9l6 6m0-6l-6 6"/>
+                        </svg>
+                    </div>
+                    <div class="member-name">Feisal El-Khazragi</div>
+                    <div class="member-role" data-i18n="role_bass">Bass &middot; Keys &middot; Backing Vocals</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tracks" class="reveal">
+            <div class="section-label" data-i18n="tracks_label">004 // Essential</div>
+            <h2 class="section-title" data-i18n="tracks_title">Key Tracks</h2>
+            <div class="divider"></div>
+            <div class="tracks-list">
+                <div class="track-item">
+                    <div class="track-num">01</div>
+                    <div class="track-name">Is It Really You?</div>
+                    <div class="track-album">I Let It in and It Took Everything</div>
+                    <button class="track-play" data-spotify="4ndmsvcCgLZH2hZwVw8cuJ"><svg viewBox="0 0 24 24" fill="var(--accent)"><polygon points="8,5 19,12 8,19"/></svg></button>
+                </div>
+                <div class="track-embed"><iframe data-src="https://open.spotify.com/embed/track/4ndmsvcCgLZH2hZwVw8cuJ?theme=0&utm_source=generator&autoplay=1" width="100%" height="152" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe></div>
+
+                <div class="track-item">
+                    <div class="track-num">02</div>
+                    <div class="track-name">Two-Way Mirror</div>
+                    <div class="track-album">I Let It in and It Took Everything</div>
+                    <button class="track-play" data-spotify="6iXqQq1KLp3sBrNo9mUzht"><svg viewBox="0 0 24 24" fill="var(--accent)"><polygon points="8,5 19,12 8,19"/></svg></button>
+                </div>
+                <div class="track-embed"><iframe data-src="https://open.spotify.com/embed/track/6iXqQq1KLp3sBrNo9mUzht?theme=0&utm_source=generator&autoplay=1" width="100%" height="152" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe></div>
+
+                <div class="track-item">
+                    <div class="track-num">03</div>
+                    <div class="track-name">A Sad Cartoon</div>
+                    <div class="track-album">I Let It in and It Took Everything</div>
+                    <button class="track-play" data-spotify="2fyDWKsx5904KnZMGllmAv"><svg viewBox="0 0 24 24" fill="var(--accent)"><polygon points="8,5 19,12 8,19"/></svg></button>
+                </div>
+                <div class="track-embed"><iframe data-src="https://open.spotify.com/embed/track/2fyDWKsx5904KnZMGllmAv?theme=0&utm_source=generator&autoplay=1" width="100%" height="152" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe></div>
+
+                <div class="track-item">
+                    <div class="track-num">04</div>
+                    <div class="track-name">Screaming</div>
+                    <div class="track-album">I Let It in and It Took Everything</div>
+                    <button class="track-play" data-spotify="611WshW3yQKLCQ2pTCOii4"><svg viewBox="0 0 24 24" fill="var(--accent)"><polygon points="8,5 19,12 8,19"/></svg></button>
+                </div>
+                <div class="track-embed"><iframe data-src="https://open.spotify.com/embed/track/611WshW3yQKLCQ2pTCOii4?theme=0&utm_source=generator&autoplay=1" width="100%" height="152" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe></div>
+
+                <div class="track-item">
+                    <div class="track-num">05</div>
+                    <div class="track-name">Aggressive Evolution</div>
+                    <div class="track-album">I Let It in and It Took Everything</div>
+                    <button class="track-play" data-spotify="0ZfpA3Tq0OWlxpowofOlH9"><svg viewBox="0 0 24 24" fill="var(--accent)"><polygon points="8,5 19,12 8,19"/></svg></button>
+                </div>
+                <div class="track-embed"><iframe data-src="https://open.spotify.com/embed/track/0ZfpA3Tq0OWlxpowofOlH9?theme=0&utm_source=generator&autoplay=1" width="100%" height="152" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe></div>
+
+                <div class="track-item">
+                    <div class="track-num">06</div>
+                    <div class="track-name">Babylon...</div>
+                    <div class="track-album">The Cold Sun</div>
+                    <button class="track-play" data-spotify="08on2wzs5D8ccY4oRrMR7G"><svg viewBox="0 0 24 24" fill="var(--accent)"><polygon points="8,5 19,12 8,19"/></svg></button>
+                </div>
+                <div class="track-embed"><iframe data-src="https://open.spotify.com/embed/track/08on2wzs5D8ccY4oRrMR7G?theme=0&utm_source=generator&autoplay=1" width="100%" height="152" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe></div>
+
+                <div class="track-item">
+                    <div class="track-num">07</div>
+                    <div class="track-name">Gifted Every Strength</div>
+                    <div class="track-album">Single (2025)</div>
+                    <button class="track-play" data-spotify="50Rr3aPZNinnaTIbR7e3AG"><svg viewBox="0 0 24 24" fill="var(--accent)"><polygon points="8,5 19,12 8,19"/></svg></button>
+                </div>
+                <div class="track-embed"><iframe data-src="https://open.spotify.com/embed/track/50Rr3aPZNinnaTIbR7e3AG?theme=0&utm_source=generator&autoplay=1" width="100%" height="152" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe></div>
+
+                <div class="track-item">
+                    <div class="track-num">08</div>
+                    <div class="track-name">Gored</div>
+                    <div class="track-album">I Let It in and It Took Everything</div>
+                    <button class="track-play" data-spotify="5ycLTrgkYgT3T6DQPmGbSw"><svg viewBox="0 0 24 24" fill="var(--accent)"><polygon points="8,5 19,12 8,19"/></svg></button>
+                </div>
+                <div class="track-embed"><iframe data-src="https://open.spotify.com/embed/track/5ycLTrgkYgT3T6DQPmGbSw?theme=0&utm_source=generator&autoplay=1" width="100%" height="152" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe></div>
+
+                <div class="track-item">
+                    <div class="track-num">09</div>
+                    <div class="track-name">Dimorphous Display</div>
+                    <div class="track-album">I Let It in and It Took Everything</div>
+                    <button class="track-play" data-spotify="2JjDl1YbzaBKlhSrUXZqNM"><svg viewBox="0 0 24 24" fill="var(--accent)"><polygon points="8,5 19,12 8,19"/></svg></button>
+                </div>
+                <div class="track-embed"><iframe data-src="https://open.spotify.com/embed/track/2JjDl1YbzaBKlhSrUXZqNM?theme=0&utm_source=generator&autoplay=1" width="100%" height="152" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe></div>
+
+                <div class="track-item">
+                    <div class="track-num">10</div>
+                    <div class="track-name">White Hot</div>
+                    <div class="track-album">I Let It in and It Took Everything</div>
+                    <button class="track-play" data-spotify="6NCUsc3nuKxBTyH4E4Pu5c"><svg viewBox="0 0 24 24" fill="var(--accent)"><polygon points="8,5 19,12 8,19"/></svg></button>
+                </div>
+                <div class="track-embed"><iframe data-src="https://open.spotify.com/embed/track/6NCUsc3nuKxBTyH4E4Pu5c?theme=0&utm_source=generator&autoplay=1" width="100%" height="152" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe></div>
+            </div>
+        </section>
+
+        <section id="tour" class="reveal">
+            <div class="section-label" data-i18n="tour_label">005 // Live</div>
+            <h2 class="section-title" data-i18n="tour_title">Tour Dates</h2>
+            <div class="divider"></div>
+            <div class="tour-list">
+                <div class="tour-item">
+                    <div class="tour-date">Jul 17, 2026</div>
+                    <div class="tour-venue">Liverpool Olympia</div>
+                    <div style="display:flex;align-items:center;gap:15px;">
+                        <div class="tour-location">Liverpool, UK</div>
+                        <div class="tour-status" data-i18n="status_hometown">Hometown</div>
+                    </div>
+                </div>
+                <div class="tour-item">
+                    <div class="tour-date">Sep 12, 2026</div>
+                    <div class="tour-venue">Webster Hall</div>
+                    <div style="display:flex;align-items:center;gap:15px;">
+                        <div class="tour-location">New York, US</div>
+                        <div class="tour-status" data-i18n="status_onsale">On Sale</div>
+                    </div>
+                </div>
+                <div class="tour-item">
+                    <div class="tour-date">Sep 15, 2026</div>
+                    <div class="tour-venue">The Roxy Theatre</div>
+                    <div style="display:flex;align-items:center;gap:15px;">
+                        <div class="tour-location">Los Angeles, US</div>
+                        <div class="tour-status" data-i18n="status_onsale">On Sale</div>
+                    </div>
+                </div>
+                <div class="tour-item">
+                    <div class="tour-date">Sep 20, 2026</div>
+                    <div class="tour-venue">Metro Chicago</div>
+                    <div style="display:flex;align-items:center;gap:15px;">
+                        <div class="tour-location">Chicago, US</div>
+                        <div class="tour-status" data-i18n="status_onsale">On Sale</div>
+                    </div>
+                </div>
+                <div class="tour-item">
+                    <div class="tour-date">Oct 5, 2026</div>
+                    <div class="tour-venue">The Fillmore</div>
+                    <div style="display:flex;align-items:center;gap:15px;">
+                        <div class="tour-location">San Francisco, US</div>
+                        <div class="tour-status" data-i18n="status_onsale">On Sale</div>
+                    </div>
+                </div>
+                <div class="tour-item">
+                    <div class="tour-date">May 2026</div>
+                    <div class="tour-venue">Australia Tour</div>
+                    <div style="display:flex;align-items:center;gap:15px;">
+                        <div class="tour-location">w/ Static Dress</div>
+                        <div class="tour-status" data-i18n="status_announced">Announced</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <div data-i18n="footer_copy">&copy; 2026 Loathe // Fan Page</div>
+            <ul class="footer-links">
+                <li>Spotify</li>
+                <li>Instagram</li>
+                <li>Bandcamp</li>
+                <li>Twitter</li>
+            </ul>
+            <div data-i18n="footer_est">EST. 2014 // Liverpool</div>
+        </footer>
+    </div>
+
+    <!-- Vertex Shader -->
+    <script id="vertexShader" type="x-shader/x-vertex">
+        void main() {
+            gl_Position = vec4(position, 1.0);
+        }
+    </script>
+
+    <!-- Fragment Shader -->
+    <script id="fragmentShader" type="x-shader/x-fragment">
+        uniform float time;
+        uniform vec2 resolution;
+        uniform vec2 mouse;
+
+        void main() {
+            vec2 uv = gl_FragCoord.xy / resolution.xy;
+            float ratio = resolution.x / resolution.y;
+            uv.x *= ratio;
+
+            vec2 m = mouse * ratio;
+            float dist = distance(uv, m);
+
+            float strength = 0.4;
+            for (float i = 1.0; i < 5.0; i++) {
+                uv.x += strength * sin(uv.y * i * 1.5 + time * 0.3);
+                uv.y += strength * cos(uv.x * i * 1.5 + time * 0.3);
+                strength *= 0.55;
+            }
+
+            vec3 color1 = vec3(0.02, 0.02, 0.04);
+            vec3 color2 = vec3(0.18, 0.30, 0.52);
+            vec3 color3 = vec3(0.10, 0.15, 0.30);
+
+            float grain = fract(sin(dot(uv, vec2(12.9898, 78.233))) * 43758.5453);
+
+            float pattern = smoothstep(0.2, 0.8, sin(uv.x * 3.0 + uv.y * 2.0 + time * 0.1));
+            float pattern2 = smoothstep(0.3, 0.7, cos(uv.x * 2.0 - uv.y * 3.0 + time * 0.15));
+
+            vec3 finalColor = mix(color1, color2, pattern * 0.5);
+            finalColor = mix(finalColor, color3, pattern2 * 0.3);
+
+            finalColor += 0.08 / (dist + 0.1) * color2 * 0.15;
+
+            float vignette = 1.0 - smoothstep(0.4, 1.4, length(uv / vec2(ratio, 1.0) - vec2(0.5)));
+            finalColor *= vignette;
+
+            gl_FragColor = vec4(finalColor + (grain * 0.015), 1.0);
+        }
+    </script>
+
+    <script>
+        // ── Three.js Background ──
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        container.appendChild(renderer.domElement);
+
+        const uniforms = {
+            time: { value: 1.0 },
+            resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+            mouse: { value: new THREE.Vector2(0.5, 0.5) }
+        };
+
+        const geometry = new THREE.PlaneGeometry(2, 2);
+        const material = new THREE.ShaderMaterial({
+            uniforms: uniforms,
+            vertexShader: document.getElementById('vertexShader').textContent,
+            fragmentShader: document.getElementById('fragmentShader').textContent
+        });
+
+        const mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+
+        window.addEventListener('resize', () => {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
+        });
+
+        // ── Custom Cursor ──
+        const cursor = document.getElementById('cursor');
+        let mouseX = 0, mouseY = 0;
+        let cursorX = 0, cursorY = 0;
+
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            const x = e.clientX / window.innerWidth;
+            const y = 1.0 - (e.clientY / window.innerHeight);
+            uniforms.mouse.value.set(x, y);
+        });
+
+        // Cursor hover effect on interactive elements
+        const hoverTargets = document.querySelectorAll('a, .nav-links li, .track-item, .track-play, .tour-item, .album-card, .member-card, .footer-links li, .lang-btn');
+        hoverTargets.forEach(el => {
+            el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+            el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+        });
+
+        // ── Smooth Cursor Animation ──
+        function animateCursor() {
+            cursorX += (mouseX - cursorX) * 0.12;
+            cursorY += (mouseY - cursorY) * 0.12;
+            cursor.style.left = cursorX - 18 + 'px';
+            cursor.style.top = cursorY - 18 + 'px';
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+
+        // ── Shader Animation ──
+        function animate(t) {
+            requestAnimationFrame(animate);
+            uniforms.time.value = t / 1000;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // ── Scroll Reveal ──
+        const revealElements = document.querySelectorAll('.reveal');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        revealElements.forEach(el => observer.observe(el));
+
+        // ── Parallax on Hero ──
+        const heroTitle = document.querySelector('.hero-title');
+        window.addEventListener('mousemove', (e) => {
+            const moveX = (e.clientX - window.innerWidth / 2) * 0.008;
+            const moveY = (e.clientY - window.innerHeight / 2) * 0.008;
+            heroTitle.style.transform = `translate(${moveX}px, ${moveY}px)`;
+        });
+
+        // ── Smooth scroll for nav links ──
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = document.querySelector(link.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+
+        // ── Language Toggle ──
+        const translations = {
+            nav_about: { en: 'About', es: 'Sobre' },
+            nav_disco: { en: 'Discography', es: 'Discografía' },
+            nav_members: { en: 'Members', es: 'Miembros' },
+            nav_tracks: { en: 'Tracks', es: 'Canciones' },
+            nav_tour: { en: 'Tour', es: 'Gira' },
+            hero_sub1: { en: 'Liverpool // 2014\u2014Present', es: 'Liverpool // 2014\u2014Presente' },
+            hero_sub2: { en: 'Metalcore \u00b7 Shoegaze \u00b7 Nu Metal', es: 'Metalcore \u00b7 Shoegaze \u00b7 Nu Metal' },
+            hero_status: { en: 'System: Active', es: 'Sistema: Activo' },
+            about_label: { en: '001 // Origin', es: '001 // Origen' },
+            about_title: { en: 'About', es: 'Sobre' },
+            about_p1: { en: 'Loathe are a genre-defying force from Liverpool, England. Blending the crushing weight of metalcore with the ethereal textures of shoegaze and the rhythmic pulse of nu metal, they create soundscapes that are simultaneously punishing and beautiful.', es: 'Loathe es una fuerza desafiante al género de Liverpool, Inglaterra. Fusionando el peso aplastante del metalcore con las texturas etéreas del shoegaze y el pulso rítmico del nu metal, crean paisajes sonoros que son simultáneamente demoledores y hermosos.' },
+            about_p2: { en: 'Formed in 2014, the band quickly gained attention for their uncompromising vision\u2014a fusion of visceral screamed vocals and haunting clean melodies layered over baritone guitar riffs and industrial-tinged electronics.', es: 'Formada en 2014, la banda rápidamente ganó atención por su visión intransigente\u2014una fusión de voces gritadas viscerales y melodías limpias inquietantes superpuestas a riffs de guitarra barítona y electrónicas con toques industriales.' },
+            about_p3: { en: 'Their breakthrough album <em>I Let It in and It Took Everything</em> (2020) was hailed as a landmark record, earning a place among Metal Hammer\u2019s best metal albums of the year and drawing comparisons to Deftones and Radiohead.', es: 'Su álbum breakthrough <em>I Let It in and It Took Everything</em> (2020) fue aclamado como un disco legendario, ganando un lugar entre los mejores álbumes de metal del año de Metal Hammer y siendo comparado con Deftones y Radiohead.' },
+            meta_origin: { en: 'Origin', es: 'Origen' },
+            meta_formed: { en: 'Formed', es: 'Formación' },
+            meta_labels: { en: 'Labels', es: 'Discográficas' },
+            meta_genres: { en: 'Genres', es: 'Géneros' },
+            meta_infl: { en: 'Influences', es: 'Influencias' },
+            disco_label: { en: '002 // Discography', es: '002 // Discografía' },
+            disco_title: { en: 'Albums', es: 'Álbumes' },
+            alb1: { en: 'A post-apocalyptic concept album exploring isolation and violence in a world Without light.', es: 'Un álbum conceptual post-apocalíptico que explora el aislamiento y la violencia en un mundo sin luz.' },
+            alb2: { en: 'The breakthrough record. A masterclass in dynamic contrast\u2014crushing heaviness meets shoegaze beauty.', es: 'El disco breakthrough. Una clase magistral en contraste dinámico\u2014la pesadez aplastante se encuentra con la belleza del shoegaze.' },
+            alb3: { en: 'An atmospheric companion piece. Electronic textures and cinematic ambience.', es: 'Una pieza complementaria atmosférica. Texturas electrónicas y atmósfera cinemática.' },
+            alb4: { en: 'Their most sonically adventurous work to date. A bold evolution of the Loathe sound.', es: 'Su obra más aventurera sonoramente hasta la fecha. Una audaz evolución del sonido de Loathe.' },
+            mem_label: { en: '003 // Members', es: '003 // Miembros' },
+            mem_title: { en: 'The Band', es: 'La Banda' },
+            role_vocals: { en: 'Lead Vocals', es: 'Voz Principal' },
+            role_guitar: { en: 'Guitar \u00b7 Vocals', es: 'Guitarra \u00b7 Voces' },
+            role_drums: { en: 'Drums', es: 'Batería' },
+            role_bass: { en: 'Bass \u00b7 Keys \u00b7 Backing Vocals', es: 'Bajo \u00b7 Teclados \u00b7 Coros' },
+            tracks_label: { en: '004 // Essential', es: '004 // Esenciales' },
+            tracks_title: { en: 'Key Tracks', es: 'Canciones Clave' },
+            tour_label: { en: '005 // Live', es: '005 // En Vivo' },
+            tour_title: { en: 'Tour Dates', es: 'Fechas de Gira' },
+            status_hometown: { en: 'Hometown', es: 'Ciudad Natal' },
+            status_onsale: { en: 'On Sale', es: 'A la Venta' },
+            status_announced: { en: 'Announced', es: 'Anunciado' },
+            footer_copy: { en: '\u00a9 2026 Loathe // Fan Page', es: '\u00a9 2026 Loathe // Página de Fans' },
+            footer_est: { en: 'EST. 2014 // Liverpool', es: 'EST. 2014 // Liverpool' }
+        };
+
+        let currentLang = 'en';
+        const langBtn = document.getElementById('langToggle');
+
+        function setLang(lang) {
+            currentLang = lang;
+            document.documentElement.lang = lang === 'es' ? 'es' : 'en';
+            langBtn.textContent = lang === 'en' ? 'ES' : 'EN';
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[key] && translations[key][lang]) {
+                    el.innerHTML = translations[key][lang];
+                }
+            });
+        }
+
+        langBtn.addEventListener('click', () => {
+            setLang(currentLang === 'en' ? 'es' : 'en');
+        });
+
+        // ── Spotify Track Players ──
+        document.querySelectorAll('.track-play').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const embed = btn.closest('.track-item').nextElementSibling;
+                const wasOpen = embed.classList.contains('open');
+
+                // Cerrar todos y detener reproduccion
+                document.querySelectorAll('.track-embed').forEach(e => {
+                    e.classList.remove('open');
+                    const iframe = e.querySelector('iframe');
+                    if (iframe && iframe.src) {
+                        iframe.src = '';
+                    }
+                });
+                document.querySelectorAll('.track-play').forEach(b => b.classList.remove('active'));
+
+                // Abrir el clickeado si no estaba abierto
+                if (!wasOpen) {
+                    embed.classList.add('open');
+                    btn.classList.add('active');
+                    const iframe = embed.querySelector('iframe');
+                    if (iframe && !iframe.dataset.loaded) {
+                        iframe.src = iframe.dataset.src;
+                        iframe.dataset.loaded = '1';
+                    } else if (iframe) {
+                        iframe.src = iframe.dataset.src;
+                    }
+                }
+            });
+        });
+
+        // Ocultar cursor custom sobre iframes de Spotify
+        document.querySelectorAll('.track-embed').forEach(embed => {
+            embed.addEventListener('mouseenter', () => document.body.classList.add('cursor-off'));
+            embed.addEventListener('mouseleave', () => document.body.classList.remove('cursor-off'));
+        });
+    </script>
+</body>
+</html>

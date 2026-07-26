@@ -1,0 +1,129 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VENOM ARCHIVE // BRUTAL MODE</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='10' fill='%23030303'/%3E%3Ctext x='50' y='70' font-size='55' text-anchor='middle' fill='%2300f3ff'%3E☠%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Syncopate:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- OVERLAYS -->
+  <div class="scanlines"></div>
+  <div class="vignette"></div>
+  <div class="noise"></div>
+
+  <!-- HUD -->
+  <div class="hud">
+    <div class="hud-top">
+      <span>SYS.ACTIVE</span>
+      <div class="hud-line"></div>
+      <span>FPS: <strong id="fps">60</strong></span>
+    </div>
+    <div class="hud-side">
+      SCROLL VELOCITY // <strong id="vel-readout">0.00</strong>
+    </div>
+    <div class="hud-bottom">
+      <span>COORD: <strong id="coord">000.000</strong></span>
+      <div class="hud-line"></div>
+      <span>VER 3.0.0 [VENOM]</span>
+    </div>
+  </div>
+
+  <!-- 3D WORLD -->
+  <div class="viewport" id="viewport">
+    <div class="world" id="world"></div>
+  </div>
+
+  <!-- LOADING SCREEN -->
+  <div id="loading-screen">
+    <div class="loading-glitch" id="loading-phase">
+      <div class="load-title" id="load-title">INICIALIZANDO ARCHIVO</div>
+      <div class="loading-bar-container">
+        <div class="loading-bar" id="loading-bar"></div>
+      </div>
+      <div class="loading-pct" id="loading-pct">0%</div>
+    </div>
+
+    <div class="instruc-phase hidden" id="phase-instruc">
+      <div class="instruc-title">CÓMO FUNCIONA</div>
+      <div class="instruc-grid">
+        <div class="instruc-item">
+          <span class="instruc-num">01</span>
+          <div class="instruc-content">
+            <span class="instruc-head">DESPLAZAMIENTO</span>
+            <span class="instruc-text">Usa el scroll para navegar entre los especímenes en el espacio 3D</span>
+          </div>
+        </div>
+        <div class="instruc-item">
+          <span class="instruc-num">02</span>
+          <div class="instruc-content">
+            <span class="instruc-head">ACCESO A DATOS</span>
+            <span class="instruc-text">Haz clic en cualquier tarjeta para ver su ficha técnica completa</span>
+          </div>
+        </div>
+        <div class="instruc-item">
+          <span class="instruc-num">03</span>
+          <div class="instruc-content">
+            <span class="instruc-head">CERRAR FICHA</span>
+            <span class="instruc-text">Presiona ESC o haz clic fuera del panel para cerrar</span>
+          </div>
+        </div>
+      </div>
+      <button class="instruc-btn" id="instruc-btn">INGRESAR</button>
+    </div>
+  </div>
+
+  <!-- DETAIL OVERLAY -->
+  <div id="detail-overlay" class="hidden">
+    <div id="detail-content">
+      <button id="detail-close"><i class="fa-solid fa-xmark"></i></button>
+      <div class="detail-scroll">
+        <div class="detail-header">
+          <span class="detail-id" id="detail-id"></span>
+          <div class="detail-dot"></div>
+        </div>
+        <h1 id="detail-name"></h1>
+        <p class="detail-sci" id="detail-sci"></p>
+        <p class="detail-jp" id="detail-jp"></p>
+
+        <div class="detail-meta-grid">
+          <div class="detail-meta-item"><span class="dm-label">CLASIFICACIÓN</span><span class="dm-value" id="d-cls"></span></div>
+          <div class="detail-meta-item"><span class="dm-label">TOXINA PRINCIPAL</span><span class="dm-value" id="d-toxin"></span></div>
+          <div class="detail-meta-item"><span class="dm-label">LD50</span><span class="dm-value" id="d-ld50"></span></div>
+          <div class="detail-meta-item"><span class="dm-label">ANTÍDOTO</span><span class="dm-value" id="d-antidote"></span></div>
+        </div>
+
+        <div class="detail-section">
+          <h2>PERFIL DE TOXINA</h2>
+          <p id="d-description"></p>
+        </div>
+        <div class="detail-section">
+          <h2>HÁBITAT Y COMPORTAMIENTO</h2>
+          <p id="d-habitat"></p>
+        </div>
+        <div class="detail-section">
+          <h2>PROTOCOLO DE EMERGENCIA</h2>
+          <p id="d-protocol"></p>
+        </div>
+      </div>
+      <div class="detail-nav">
+        <button class="detail-nav-btn" id="detail-prev"><i class="fa-solid fa-chevron-left"></i> ANTERIOR</button>
+        <span class="detail-counter" id="detail-counter"></span>
+        <button class="detail-nav-btn" id="detail-next">SIGUIENTE <i class="fa-solid fa-chevron-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCROLL PROXY -->
+  <div class="scroll-proxy"></div>
+
+  <script src="https://unpkg.com/@studio-freight/lenis@1.0.33/dist/lenis.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
