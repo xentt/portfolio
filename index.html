@@ -208,13 +208,13 @@ a#menu{background:var(--dbckg1);margin:-30px 20px -30px -40px;height:92px;width:
 .frbanner{position:absolute;inset:0;width:100%;height:100%;z-index:-2;overflow:hidden}
 .frbanner .pframe{position:absolute;top:0;left:0;width:1280px;height:800px;border:0;transform-origin:top left;pointer-events:none;background:#fff}
 .frbanner::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(10,10,10,.2),var(--dbckg0) 70%)}
-#f1, #f2{grid-area:handbook;display:grid;grid-template-columns:40% 60%;grid-template-rows:60px calc(72% - 60px) 28%;
+#f1{grid-area:handbook;display:grid;grid-template-columns:40% 60%;grid-template-rows:60px calc(72% - 60px) 28%;
   grid-template-areas:'name image' 'desc image' 'subs image';position:relative;min-height:340px}
-#f1 .frbanner, #f2 .frbanner{grid-area:image;position:relative;border-left:1px solid var(--border1-c)}
-#f1 .forumtitle, #f2 .forumtitle{grid-area:1 / 1 / 2 / 3;font:42px 'Anton';text-transform:uppercase;padding:5px 20px 0;color:var(--title);text-shadow:5px 5px var(--accent2)}
-#f1 .frdesc, #f2 .frdesc{grid-area:desc;padding:20px 15px 20px 20px}
-#f1 .frsubs, #f2 .frsubs{grid-area:subs;display:flex;justify-content:center;align-items:center;flex-wrap:wrap;padding:0 20px 20px;gap:10px}
-#f1 .frsubs a, #f2 .frsubs a{border:1px solid currentColor;border-radius:99px;flex-grow:1;align-self:stretch;font-size:11px;text-transform:uppercase;font-weight:700;display:flex;justify-content:center;align-items:center;min-width:25%;background:var(--tbckg1);padding:3px 5px}
+#f1 .frbanner{grid-area:image;position:relative;border-left:1px solid var(--border1-c)}
+#f1 .forumtitle{grid-area:1 / 1 / 2 / 3;font:42px 'Anton';text-transform:uppercase;padding:5px 20px 0;color:var(--title);text-shadow:5px 5px var(--accent2)}
+#f1 .frdesc{grid-area:desc;padding:20px 15px 20px 20px}
+#f1 .frsubs{grid-area:subs;display:flex;justify-content:center;align-items:center;flex-wrap:wrap;padding:0 20px 20px;gap:10px}
+#f1 .frsubs a{border:1px solid currentColor;border-radius:99px;flex-grow:1;align-self:stretch;font-size:11px;text-transform:uppercase;font-weight:700;display:flex;justify-content:center;align-items:center;min-width:25%;background:var(--tbckg1);padding:3px 5px}
 #f1 .frdata,#f1 .frlast{display:none}
 @media(max-width:700px){ #f1{grid-template-columns:1fr;grid-template-rows:auto auto 200px auto;grid-template-areas:'name' 'desc' 'image' 'subs'} #f1 .frbanner{min-height:200px} }
 
@@ -375,24 +375,15 @@ a#menu{background:var(--dbckg1);margin:-30px 20px -30px -40px;height:92px;width:
               <iframe class="pframe" src="./SAOWebPage/index.html" title="SAO Web Page" loading="lazy" scrolling="no" tabindex="-1"></iframe>
             </div>
           </div>
-          <!-- Proyecto destacado supervifile -->
-          <div class="frow" id="f2">
-            <a href="https://portfolio-nynm.vercel.app/" class="forumtitle">Supervifile</a>
-            <div class="frdesc">
-              <div class="desc">Clon de Google Drive full-stack construido con Next.js. Gestión completa de archivos y carpetas (crear, subir, renombrar, mover, eliminar, papelera), almacenamiento en Supabase Storage, base de datos MySQL con Prisma, autenticación con NextAuth (credentials + Google), buscador de archivos y registro de actividad.</div>
-              <div class="frsubs">
-                <a href="https://portfolio-nynm.vercel.app/"><i class="fa-brands fa-js"></i> TypeScript</a>
-                <a href="https://portfolio-nynm.vercel.app/"><i class="fa-solid fa-server"></i> Next.js</a>
-                <a href="https://portfolio-nynm.vercel.app/"><i class="fa-solid fa-wind"></i> Tailwind</a>
-                <a href="https://portfolio-nynm.vercel.app/"><i class="fa-solid fa-database"></i> Prisma</a>
-                <a href="https://portfolio-nynm.vercel.app/"><i class="fa-solid fa-database"></i> Supabase</a>
-                <a href="https://portfolio-nynm.vercel.app/" class="btn btn-fill" style="border-radius:99px"><i class="fa-solid fa-up-right-from-square"></i> Abrir</a>
-              </div>
-            </div>
-            <div class="frbanner">
-              <iframe class="pframe" src="https://portfolio-nynm.vercel.app/" title="Supervifile" loading="lazy" scrolling="no" tabindex="-1"></iframe>
-            </div>
-          </div>
+           <!-- Proyecto 1 - SuperviFile -->
+            <div class="frow">
+              <div class="fpreview"><img src="./supervifile_iframe.PNG" alt="SuperviFile" style="width:100%;height:100%;object-fit:cover;border-radius:10px" /></div>
+              <a href="https://portfolio-nynm.vercel.app/" class="forumtitle">SuperviFile</a>
+             <div class="frdesc"><div class="desc">Clon de Google Drive full-stack construido con Next.js. Gestión completa de archivos y carpetas (crear, subir, renombrar, mover, eliminar, papelera), almacenamiento en Supabase Storage, base de datos MySQL con Prisma, autenticación con NextAuth (credentials + Google), buscador de archivos y registro de actividad.</div></div>
+             <div class="frdata"><span><b>Next.js</b></span><span><b>React</b></span><span><b>TS</b></span></div>
+             <div class="frlast"><span style="color:var(--subtitle2);font-size:12px;font-weight:700">APP FULLSTACK</span>
+               <a href="https://portfolio-nynm.vercel.app/" class="btn btn-line frbtn"><i class="fa-solid fa-up-right-from-square"></i> Ver</a></div>
+           </div>
           <!-- Proyecto 2 -->
            <div class="frow">
              <div class="fpreview"><iframe class="pframe" src="./LoatheWebPage/index.html" title="Loathe" loading="lazy" scrolling="no" tabindex="-1"></iframe></div>
